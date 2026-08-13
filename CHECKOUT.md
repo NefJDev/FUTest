@@ -1,48 +1,82 @@
-# Checkout con upsell y downsell
+# Pipeline de venta — réplica de Kajabi
 
-Simulación del flujo de venta de Kajabi para mostrarle al cliente cómo va a
-funcionar la tienda antes de pagar la suscripción.
+Demo del flujo de compra para mostrarle al cliente cómo va a funcionar la
+tienda antes de contratar la suscripción de Kajabi.
 
-> **No se cobra nada.** No hay pasarela de pago conectada. El número de tarjeta
-> nunca sale del navegador: se valida el formato con Luhn y solo se envían los
+> **No se cobra nada.** No hay pasarela conectada. El número de tarjeta nunca
+> sale del navegador: se valida el formato con Luhn y solo se envían los
 > últimos 4 dígitos y la marca.
+
+## Por qué está armado así
+
+Todo lo que hay acá existe en Kajabi. Se evitó a propósito cualquier cosa que
+después no se pueda construir dentro de la plataforma:
+
+| Kajabi                              | Se puede diseñar        | Acá                        |
+| ----------------------------------- | ----------------------- | -------------------------- |
+| Carrito de compras                  | **No existe**           | No hay carrito             |
+| Página de checkout                  | Plantilla fija          | `/checkout` (fondo claro)  |
+| Order Bump                          | Bloque con checkbox     | Dentro del checkout        |
+| Payment Plan de una Offer           | Opciones de la Offer    | Radios "1 pago / 3 pagos"  |
+| Upsell / Downsell post-compra       | **Page builder**        | `/oferta`, `/oferta-final` |
+| Thank you page                      | **Page builder**        | `/gracias`                 |
+
+Dos consecuencias importantes:
+
+1. **No se pueden comprar dos cursos sueltos en una sola transacción.** En
+   Kajabi cada Offer tiene su propio checkout. Si alguien quiere dos cursos,
+   son dos compras. Por eso los botones llevan directo a `/checkout?offer=<id>`.
+2. **El checkout se ve más sobrio que el resto del sitio.** Es intencional: esa
+   página no pasa por el page builder, solo se le puede cambiar logo, colores y
+   textos. Las páginas de upsell, downsell y gracias sí llevan diseño de marca
+   porque esas sí son páginas del builder.
 
 ## El funnel
 
 ```
-Elige 1 curso  →  [CARRITO]  →  UPSELL: "sumá los otros 4 por +$X"
-                                   │
-                        ┌──────────┴──────────┐
-                     acepta                rechaza
-                        │                     │
-                 bundle $497          DOWNSELL: "3 cuotas de $165.67"
-                                              │
-                                   ┌──────────┴──────────┐
-                                acepta                rechaza
-                                   │                     │
-                          bundle en 3 pagos      sigue con su curso
+Clic en un curso  →  CHECKOUT
+                       │  Order Bump: "añade los otros 4 por +$100"
+              ┌────────┴────────┐
+          lo marca          no lo marca
+              │                  │
+          Bundle $497      →  UPSELL post-compra (1 clic, $100)
+              │                  │
+              │           ┌──────┴──────┐
+              │        acepta        rechaza
+              │           │             │
+              │           │      →  DOWNSELL (mismo upgrade en 3 pagos)
+              │           │             │
+              └───────────┴─────────────┴──→  GRACIAS
 ```
 
-### Upsell — crédito del curso elegido
+### Order Bump — crédito del curso elegido
 
-Lo que ya tiene en el carrito se le acredita contra el precio del bundle, así
-que solo paga la diferencia hasta $497. Es lo que mejor convierte porque el
-descuento se siente enorme:
+Lo que ya está pagando por el curso se le acredita contra el precio del bundle,
+así que solo abona la diferencia hasta $497:
 
-| Curso en el carrito | Ya pagó | Paga ahora | Los otros 4 valen | Descuento |
-| ------------------- | ------: | ---------: | ----------------: | --------: |
-| Real Estate         |    $397 |      +$100 |              $938 |      −89% |
-| Redes               |    $297 |      +$200 |            $1,038 |      −81% |
-| Empresa de contenido|    $197 |      +$300 |            $1,138 |      −74% |
+| Curso en el checkout | Ya paga | Bump  | Los otros 4 valen | Descuento |
+| -------------------- | ------: | ----: | ----------------: | --------: |
+| Real Estate          |    $397 |  $100 |              $938 |      −89% |
+| Redes                |    $297 |  $200 |            $1,038 |      −81% |
+| Empresa de contenido |    $197 |  $300 |            $1,138 |      −74% |
 
-Casos borde ya contemplados: si junta cursos por más de $497 el upgrade sale
-gratis, y si ya tiene los 5 sueltos se le ofrece cambiarlos por el bundle.
+Al marcarlo, el total pasa a $497 y se habilitan las opciones de plan de pago.
 
-### Downsell — 3 cuotas sin recargo
+### Upsell y downsell post-compra
 
-Solo aparece **después** de rechazar el upsell. $497 repartidos en
-`$165.67 + $165.67 + $165.66`, que suman exactamente $497 (el resto de la
-división se carga a las primeras cuotas, nunca queda un total de $497.01).
+Se cobran **como una transacción aparte** a la tarjeta que ya quedó guardada,
+que es exactamente como Kajabi maneja los one-click upsells. Por eso la página
+de gracias muestra dos recibos.
+
+El downsell reparte el mismo upgrade en 3 pagos sin recargo. Las cuotas suman
+siempre el total exacto: el resto de la división se carga a los primeros pagos,
+nunca queda un total de $100.02.
+
+> **Nota:** como el upgrade ya viene con el crédito aplicado, para quien compró
+> el curso de $397 el downsell queda en 3 pagos de $33.34. Si prefieres que el
+> downsell se sienta más grande, la alternativa es no acreditar el curso y
+> ofrecer el bundle completo en 3 cuotas de $165.67 — pero eso significa
+> cobrarle dos veces el curso que ya compró.
 
 ## Probarlo
 
@@ -50,53 +84,46 @@ división se carga a las primeras cuotas, nunca queda un total de $497.01).
 npm run dev
 ```
 
-En el checkout hay dos tarjetas de prueba clickeables:
-
 | Tarjeta               | Resultado      |
 | --------------------- | -------------- |
 | `4242 4242 4242 4242` | Pago aprobado  |
 | `4000 0000 0000 0002` | Pago rechazado |
 
-Cualquier vencimiento futuro y CVC sirven. La página de confirmación incluye un
-bloque **"Recorrido de esta compra"** que muestra qué pasos del funnel se
-dispararon — útil para explicarle el mecanismo al cliente. Ese bloque es solo de
-la demo.
+Cualquier vencimiento futuro y CVC sirven. La página de gracias incluye un
+bloque **"Recorrido de esta compra"** que muestra qué pasos del pipeline se
+dispararon — sirve para explicarle el mecanismo al cliente. Ese bloque es solo
+de la demo.
 
 ## Cómo está armado
 
-| Archivo                                  | Qué hace                                                          |
-| ---------------------------------------- | ----------------------------------------------------------------- |
-| `src/lib/catalog.ts`                     | **Fuente única de verdad**: precios en centavos, cuotas, upsell    |
-| `src/lib/cart.tsx`                       | Estado del carrito y del funnel, persistido en localStorage        |
-| `src/lib/orders.ts`                      | Server function: revalida precios y crea la orden                  |
-| `src/lib/card.ts`                        | Validación de tarjeta (Luhn, marca, vencimiento)                   |
-| `src/components/checkout/OfferBlocks.tsx`| Los bloques de upsell y downsell                                   |
-| `src/components/checkout/CartDrawer.tsx` | Carrito lateral                                                    |
-| `src/routes/checkout.tsx`                | Formulario de pago y resumen                                       |
-| `src/routes/gracias.tsx`                 | Confirmación y calendario de cuotas                                |
+| Archivo                                    | Qué hace                                            |
+| ------------------------------------------ | --------------------------------------------------- |
+| `src/lib/catalog.ts`                       | **Fuente única de verdad**: precios, cuotas, upgrade |
+| `src/lib/orders.ts`                        | Server functions: compra principal y oferta post-compra |
+| `src/lib/card.ts`                          | Validación de tarjeta (Luhn, marca, vencimiento)     |
+| `src/components/checkout/CheckoutShell.tsx`| Marco del checkout (claro) y de las páginas del builder |
+| `src/routes/checkout.tsx`                  | Checkout + Order Bump + plan de pago                 |
+| `src/routes/oferta.tsx`                    | Upsell post-compra                                   |
+| `src/routes/oferta-final.tsx`              | Downsell post-compra                                 |
+| `src/routes/gracias.tsx`                   | Confirmación con los recibos                         |
 
 **Para cambiar cualquier precio, toca solo `src/lib/catalog.ts`.** La landing,
-el carrito, el checkout y el servidor leen todos de ahí.
+el checkout y el servidor leen todos de ahí.
 
 El servidor **recalcula todos los precios contra el catálogo** en vez de confiar
-en los totales que manda el navegador — igual que hay que hacerlo con una
-pasarela real. Un carrito manipulado desde la consola no cambia lo que se cobra.
+en lo que manda el navegador — igual que hay que hacerlo con una pasarela real.
 
 ## Deploy en Vercel
 
 El build usa el preset `vercel` de Nitro y genera `.vercel/output`
-(Build Output API v3): la landing sale estática y el SSR + las server functions
-corren como una función serverless. Entra holgado en el plan gratuito.
-
-Desde el dashboard de Vercel: **Add New → Project**, importá el repo y deployá.
-`vercel.json` ya trae la configuración, no hay que tocar nada ni definir
-variables de entorno.
-
-Desde la terminal:
+(Build Output API v3): las páginas salen estáticas y el SSR + las server
+functions corren como una función serverless. Entra holgado en el plan gratuito.
 
 ```bash
 npx vercel --prod
 ```
+
+`vercel.json` ya trae la configuración. No hay variables de entorno que definir.
 
 ### Assets
 
@@ -110,16 +137,12 @@ vuelve a correr:
 node scripts/fetch-assets.mjs
 ```
 
-## Migrar esto a Kajabi
+## Al migrar a Kajabi
 
-Cuando se pague la suscripción, el mapeo es directo:
-
-| Acá                              | En Kajabi                                  |
-| -------------------------------- | ------------------------------------------ |
-| Upsell en el carrito             | Order Bump en el checkout                  |
-| Downsell tras rechazar           | Offer de downsell en el pipeline           |
-| Plan de 3 cuotas                 | Payment Plan de la Offer                   |
-| Cursos individuales / bundle     | Offers separadas y una Offer con los 5     |
-
-Los precios, los textos y los porcentajes de esta demo son los mismos que hay
-que cargar en Kajabi.
+1. Crear una **Offer** por cada curso ($197 … $397) y una para el bundle ($497).
+2. En la Offer del bundle, añadir un **Payment Plan** de 3 cuotas.
+3. En cada Offer de curso suelto, añadir un **Order Bump** que apunte al
+   producto "los otros 4 cursos" al precio de la tabla de arriba.
+4. Crear un **Sales Pipeline** con la página de upsell y, después, la de
+   downsell, usando los mismos textos de `/oferta` y `/oferta-final`.
+5. Apuntar los botones de la landing a la URL de checkout de cada Offer.

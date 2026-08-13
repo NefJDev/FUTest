@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as GraciasRouteImport } from './routes/gracias'
+import { Route as OfertaRouteImport } from './routes/oferta'
+import { Route as OfertaFinalRouteImport } from './routes/oferta-final'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +30,53 @@ const GraciasRoute = GraciasRouteImport.update({
   path: '/gracias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OfertaRoute = OfertaRouteImport.update({
+  id: '/oferta',
+  path: '/oferta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfertaFinalRoute = OfertaFinalRouteImport.update({
+  id: '/oferta-final',
+  path: '/oferta-final',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/gracias': typeof GraciasRoute
+  '/oferta': typeof OfertaRoute
+  '/oferta-final': typeof OfertaFinalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/gracias': typeof GraciasRoute
+  '/oferta': typeof OfertaRoute
+  '/oferta-final': typeof OfertaFinalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/gracias': typeof GraciasRoute
+  '/oferta': typeof OfertaRoute
+  '/oferta-final': typeof OfertaFinalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkout' | '/gracias'
+  fullPaths: '/' | '/checkout' | '/gracias' | '/oferta' | '/oferta-final'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkout' | '/gracias'
-  id: '__root__' | '/' | '/checkout' | '/gracias'
+  to: '/' | '/checkout' | '/gracias' | '/oferta' | '/oferta-final'
+  id: '__root__' | '/' | '/checkout' | '/gracias' | '/oferta' | '/oferta-final'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutRoute: typeof CheckoutRoute
   GraciasRoute: typeof GraciasRoute
+  OfertaRoute: typeof OfertaRoute
+  OfertaFinalRoute: typeof OfertaFinalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +102,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GraciasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oferta': {
+      id: '/oferta'
+      path: '/oferta'
+      fullPath: '/oferta'
+      preLoaderRoute: typeof OfertaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oferta-final': {
+      id: '/oferta-final'
+      path: '/oferta-final'
+      fullPath: '/oferta-final'
+      preLoaderRoute: typeof OfertaFinalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +123,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutRoute: CheckoutRoute,
   GraciasRoute: GraciasRoute,
+  OfertaRoute: OfertaRoute,
+  OfertaFinalRoute: OfertaFinalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

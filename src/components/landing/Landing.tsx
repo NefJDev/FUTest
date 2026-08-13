@@ -1,16 +1,17 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import footerLogo from "@/assets/footer_logo.png.asset.json";
 import headerSeal from "@/assets/header_seal.png.asset.json";
 import headerLogo from "@/assets/header_logo.png.asset.json";
 import francisco from "@/assets/francisco.jpg.asset.json";
-import { CartButton } from "@/components/checkout/CartDrawer";
-import { useCart } from "@/lib/cart";
 import {
+  BUNDLE_ID,
   BUNDLE_PRICE_CENTS,
   CATALOG_VALUE_CENTS,
   COURSES,
   formatUSD,
   type CourseId,
+  type ProductId,
 } from "@/lib/catalog";
 import { bundleCourses, courseThumbs, faqs, individualCards, pillars, reviews } from "./data";
 import { Reveal, Tilt, useAutoReveal, useInView, useParallax, useScrollProgress } from "./motion";
@@ -22,6 +23,27 @@ const CHEAPEST_COURSE_CENTS = Math.min(...COURSES.map((c) => c.priceCents));
 
 /** Ancla de la grilla de cursos sueltos. */
 const INDIVIDUAL_SECTION_ID = "cursos-individuales";
+
+/**
+ * Botón de compra. Cada producto lleva a su propia página de checkout, que es
+ * exactamente cómo funciona una Offer en Kajabi: no hay carrito ni se pueden
+ * acumular productos, se compra uno por transacción.
+ */
+function BuyLink({
+  offer,
+  className,
+  children,
+}: {
+  offer: ProductId;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link to="/checkout" search={{ offer }} className={className}>
+      {children}
+    </Link>
+  );
+}
 
 /* ------------------------------------------------------------------ header */
 
@@ -46,7 +68,6 @@ function Header() {
           <a href="#bundle" className="btn-indigo">
             Inscribirme
           </a>
-          <CartButton />
         </nav>
       </div>
     </header>
@@ -69,7 +90,6 @@ function Check() {
 
 function Hero() {
   const sealRef = useParallax<HTMLImageElement>(0.05);
-  const { addBundle } = useCart();
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="relative mx-auto max-w-[1320px] px-5 pt-14 pb-16 md:px-10 md:pt-20 md:pb-24">
@@ -133,7 +153,7 @@ function Hero() {
                   cta="Quiero el bundle completo"
                   tone="strong"
                   popular
-                  onSelect={() => addBundle()}
+                  offer={BUNDLE_ID}
                 />
               </Tilt>
             </Reveal>
@@ -200,7 +220,7 @@ function PlanCard({
   tone,
   popular,
   href,
-  onSelect,
+  offer,
 }: {
   title: string;
   sub: string;
@@ -208,9 +228,9 @@ function PlanCard({
   cta: string;
   tone: "soft" | "strong";
   popular?: boolean;
-  /** Ancla a otra sección, cuando la tarjeta no agrega nada al carrito. */
+  /** Ancla a otra sección, cuando la tarjeta no lleva directo a un checkout. */
   href?: string;
-  onSelect?: () => void;
+  offer?: ProductId;
 }) {
   return (
     <div className="relative">
@@ -231,10 +251,10 @@ function PlanCard({
             </li>
           ))}
         </ul>
-        {onSelect ? (
-          <button type="button" onClick={onSelect} className="btn-lime btn-sweep mt-8 w-full">
+        {offer ? (
+          <BuyLink offer={offer} className="btn-lime btn-sweep mt-8 w-full">
             {cta} <Arrow />
-          </button>
+          </BuyLink>
         ) : (
           <a href={href ?? "#bundle"} className="btn-lime btn-sweep mt-8 w-full">
             {cta} <Arrow />
@@ -248,7 +268,6 @@ function PlanCard({
 /* ------------------------------------------------------------- courses reel */
 
 function Courses() {
-  const { addBundle } = useCart();
   return (
     <section id="acceso" className="relative overflow-hidden">
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
@@ -287,9 +306,9 @@ function Courses() {
         </ul>
 
         <Reveal className="cta-pulse mt-8 flex flex-wrap justify-center gap-4 sm:mt-12">
-          <button type="button" onClick={() => addBundle()} className="btn-ink">
+          <BuyLink offer={BUNDLE_ID} className="btn-ink">
             Quiero acceso completo <Arrow />
-          </button>
+          </BuyLink>
           <a href="#programa" className="btn-lime btn-sweep">
             Ver el programa
           </a>
@@ -335,7 +354,6 @@ function About() {
 /* ----------------------------------------------------------------- program */
 
 function Program() {
-  const { addCourse } = useCart();
   return (
     <section id="programa" className="relative pb-16 md:pb-24">
       <div className="relative mx-auto max-w-[1320px] px-5 md:px-10">
@@ -357,13 +375,12 @@ function Program() {
                   <h3 className="mt-2 text-lg font-bold text-pretty md:text-2xl">{p.title}</h3>
                   <p className="mt-1.5 max-w-2xl text-sm text-pretty text-foreground/85 md:text-base">{p.desc}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => addCourse(p.id)}
+                <BuyLink
+                  offer={p.id}
                   className="btn-lime btn-sweep col-span-2 justify-self-start md:col-span-1 md:justify-self-end"
                 >
                   Comprar <Arrow />
-                </button>
+                </BuyLink>
               </Reveal>
             ))}
           </ul>
@@ -400,7 +417,6 @@ function LimeBand({ children, top, bottom }: { children: React.ReactNode; top: s
 
 function BundleOffer({ id }: { id?: string }) {
   const { ref, inView } = useInView<HTMLDivElement>("0px 0px -18% 0px");
-  const { addBundle } = useCart();
   return (
     <div
       ref={ref}
@@ -445,13 +461,9 @@ function BundleOffer({ id }: { id?: string }) {
         <p className="display mt-4 text-[clamp(3.4rem,9vw,6rem)]">
           {formatUSD(BUNDLE_PRICE_CENTS)}
         </p>
-        <button
-          type="button"
-          onClick={() => addBundle()}
-          className="btn-lime btn-sweep cta-breathe mt-7 w-full max-w-md"
-        >
+        <BuyLink offer={BUNDLE_ID} className="btn-lime btn-sweep cta-breathe mt-7 w-full max-w-md">
           Quiero el bundle completo <Arrow />
-        </button>
+        </BuyLink>
         <p className="mt-6 text-sm text-foreground/90">Pago único · Acceso inmediato a los 5 cursos</p>
       </div>
     </div>
@@ -495,9 +507,6 @@ function IndividualCard({
   card: { id: CourseId; price: string; title: string; desc: string };
   delay: number;
 }) {
-  const { addCourse, courseIds, hasBundle } = useCart();
-  const alreadyInCart = hasBundle || courseIds.includes(card.id);
-
   return (
     <Reveal as="li" delay={delay} className="card-ink relative rounded-xl border border-alert pt-10 pb-6">
       <span className="card-red absolute -top-8 left-4 grid h-16 w-16 place-items-center rounded-full text-base font-bold text-foreground">
@@ -515,20 +524,9 @@ function IndividualCard({
           en el bundle
         </span>
 
-        <button
-          type="button"
-          onClick={() => addCourse(card.id)}
-          disabled={alreadyInCart}
-          className="btn-lime btn-sweep mt-3 w-full text-[0.7rem] disabled:cursor-default disabled:opacity-60"
-        >
-          {alreadyInCart ? (
-            <>Ya en tu carrito ✓</>
-          ) : (
-            <>
-              Comprar solo este <Arrow />
-            </>
-          )}
-        </button>
+        <BuyLink offer={card.id} className="btn-lime btn-sweep mt-3 w-full text-[0.7rem]">
+          Comprar solo este <Arrow />
+        </BuyLink>
       </div>
     </Reveal>
   );

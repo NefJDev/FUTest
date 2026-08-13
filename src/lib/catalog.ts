@@ -199,9 +199,9 @@ export function splitInstallments(totalCents: number, count = INSTALLMENT_COUNT)
 /* ------------------------------------------------------------------- upsell */
 
 export type BundleUpgrade = {
-  /** Cursos que todavía no tiene en el carrito. */
+  /** Cursos que le faltan para completar el bundle. */
   missingCourses: Course[];
-  /** Lo que ya tiene acumulado en cursos individuales. */
+  /** Lo que ya pagó por el curso suelto y se le acredita. */
   creditCents: number;
   /** Lo que le falta pagar para llevarse el bundle completo. */
   upgradeCostCents: number;
@@ -209,23 +209,33 @@ export type BundleUpgrade = {
   savingsCents: number;
   /** Descuento equivalente sobre el precio de los cursos faltantes (0–100). */
   discountPercent: number;
+  /** Valor de lista de los cursos que le faltan. */
+  missingValueCents: number;
 };
 
 /**
- * Upsell con crédito: lo que ya puso en el carrito se le descuenta del precio
- * del bundle, así que solo paga la diferencia hasta $497.
+ * Upgrade con crédito: lo que ya pagó por el curso suelto se le descuenta del
+ * precio del bundle, así que solo abona la diferencia hasta $497.
+ *
+ * Es la base tanto del Order Bump del checkout como de las ofertas post-compra.
  */
-export function calcBundleUpgrade(courseIds: CourseId[]): BundleUpgrade {
-  const owned = courseIds.map(getCourse).filter((c): c is Course => Boolean(c));
-  const ownedIds = new Set(owned.map((c) => c.id));
-  const missingCourses = COURSES.filter((c) => !ownedIds.has(c.id));
+export function calcUpgrade(courseId: string): BundleUpgrade {
+  const owned = getCourse(courseId);
+  const missingCourses = owned ? COURSES.filter((c) => c.id !== owned.id) : COURSES;
 
-  const creditCents = owned.reduce((sum, c) => sum + c.priceCents, 0);
+  const creditCents = owned?.priceCents ?? 0;
   const upgradeCostCents = Math.max(0, BUNDLE_PRICE_CENTS - creditCents);
   const missingValueCents = missingCourses.reduce((sum, c) => sum + c.priceCents, 0);
   const savingsCents = Math.max(0, missingValueCents - upgradeCostCents);
   const discountPercent =
-    missingValueCents > 0 ? Math.round((savingsCents / missingValueCents) * 100) : 100;
+    missingValueCents > 0 ? Math.round((savingsCents / missingValueCents) * 100) : 0;
 
-  return { missingCourses, creditCents, upgradeCostCents, savingsCents, discountPercent };
+  return {
+    missingCourses,
+    creditCents,
+    upgradeCostCents,
+    savingsCents,
+    discountPercent,
+    missingValueCents,
+  };
 }
