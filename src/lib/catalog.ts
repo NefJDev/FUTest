@@ -175,6 +175,17 @@ export function getProduct(id: string): Product | undefined {
 
 /* -------------------------------------------------------------------- money */
 
+/**
+ * Importe con 2 decimales y sin símbolo: "197.00".
+ * Es como Kajabi muestra los precios en el checkout ("USD 45.00").
+ */
+export function formatAmount(cents: number): string {
+  return (cents / 100).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 /** Formatea centavos como USD, omitiendo los decimales cuando son .00 */
 export function formatUSD(cents: number): string {
   const dollars = cents / 100;

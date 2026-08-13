@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import footerLogo from "@/assets/footer_logo.png.asset.json";
 import headerSeal from "@/assets/header_seal.png.asset.json";
 import headerLogo from "@/assets/header_logo.png.asset.json";
 import francisco from "@/assets/francisco.jpg.asset.json";
+import { CheckoutProvider, useCheckout } from "@/components/checkout/CheckoutModal";
 import {
   BUNDLE_ID,
   BUNDLE_PRICE_CENTS,
@@ -25,11 +25,11 @@ const CHEAPEST_COURSE_CENTS = Math.min(...COURSES.map((c) => c.priceCents));
 const INDIVIDUAL_SECTION_ID = "cursos-individuales";
 
 /**
- * Botón de compra. Cada producto lleva a su propia página de checkout, que es
- * exactamente cómo funciona una Offer en Kajabi: no hay carrito ni se pueden
- * acumular productos, se compra uno por transacción.
+ * Botón de compra. Abre el popup checkout de la Offer, que es como funciona la
+ * referencia del cliente en Kajabi (`#popup_checkout_...`): no hay carrito ni se
+ * acumulan productos, se compra uno por transacción.
  */
-function BuyLink({
+function BuyButton({
   offer,
   className,
   children,
@@ -38,10 +38,11 @@ function BuyLink({
   className: string;
   children: React.ReactNode;
 }) {
+  const { open } = useCheckout();
   return (
-    <Link to="/checkout" search={{ offer }} className={className}>
+    <button type="button" onClick={() => open(offer)} className={className}>
       {children}
-    </Link>
+    </button>
   );
 }
 
@@ -252,9 +253,9 @@ function PlanCard({
           ))}
         </ul>
         {offer ? (
-          <BuyLink offer={offer} className="btn-lime btn-sweep mt-8 w-full">
+          <BuyButton offer={offer} className="btn-lime btn-sweep mt-8 w-full">
             {cta} <Arrow />
-          </BuyLink>
+          </BuyButton>
         ) : (
           <a href={href ?? "#bundle"} className="btn-lime btn-sweep mt-8 w-full">
             {cta} <Arrow />
@@ -306,9 +307,9 @@ function Courses() {
         </ul>
 
         <Reveal className="cta-pulse mt-8 flex flex-wrap justify-center gap-4 sm:mt-12">
-          <BuyLink offer={BUNDLE_ID} className="btn-ink">
+          <BuyButton offer={BUNDLE_ID} className="btn-ink">
             Quiero acceso completo <Arrow />
-          </BuyLink>
+          </BuyButton>
           <a href="#programa" className="btn-lime btn-sweep">
             Ver el programa
           </a>
@@ -375,12 +376,12 @@ function Program() {
                   <h3 className="mt-2 text-lg font-bold text-pretty md:text-2xl">{p.title}</h3>
                   <p className="mt-1.5 max-w-2xl text-sm text-pretty text-foreground/85 md:text-base">{p.desc}</p>
                 </div>
-                <BuyLink
+                <BuyButton
                   offer={p.id}
                   className="btn-lime btn-sweep col-span-2 justify-self-start md:col-span-1 md:justify-self-end"
                 >
                   Comprar <Arrow />
-                </BuyLink>
+                </BuyButton>
               </Reveal>
             ))}
           </ul>
@@ -461,9 +462,9 @@ function BundleOffer({ id }: { id?: string }) {
         <p className="display mt-4 text-[clamp(3.4rem,9vw,6rem)]">
           {formatUSD(BUNDLE_PRICE_CENTS)}
         </p>
-        <BuyLink offer={BUNDLE_ID} className="btn-lime btn-sweep cta-breathe mt-7 w-full max-w-md">
+        <BuyButton offer={BUNDLE_ID} className="btn-lime btn-sweep cta-breathe mt-7 w-full max-w-md">
           Quiero el bundle completo <Arrow />
-        </BuyLink>
+        </BuyButton>
         <p className="mt-6 text-sm text-foreground/90">Pago único · Acceso inmediato a los 5 cursos</p>
       </div>
     </div>
@@ -524,9 +525,9 @@ function IndividualCard({
           en el bundle
         </span>
 
-        <BuyLink offer={card.id} className="btn-lime btn-sweep mt-3 w-full text-[0.7rem]">
+        <BuyButton offer={card.id} className="btn-lime btn-sweep mt-3 w-full text-[0.7rem]">
           Comprar solo este <Arrow />
-        </BuyLink>
+        </BuyButton>
       </div>
     </Reveal>
   );
@@ -700,6 +701,14 @@ function Footer() {
 /* -------------------------------------------------------------------- page */
 
 export default function Landing() {
+  return (
+    <CheckoutProvider>
+      <LandingContent />
+    </CheckoutProvider>
+  );
+}
+
+function LandingContent() {
   const gridRef = useParallax<HTMLDivElement>(0.02);
   const progressRef = useScrollProgress<HTMLElement>();
   const autoRef = useAutoReveal<HTMLDivElement>();

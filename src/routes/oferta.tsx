@@ -117,25 +117,33 @@ function UpsellPage() {
         </p>
       </div>
 
-      <div className="card-ink mt-9 rounded-2xl p-6 sm:p-8">
-        <ul className="space-y-3">
-          {upgrade.missingCourses.map((course) => (
-            <li
-              key={course.id}
-              className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3"
-            >
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime text-[11px] font-bold text-ink">
-                +
-              </span>
-              <span className="min-w-0 text-[15px] text-foreground/90">{course.short}</span>
-              <span className="text-[14px] font-bold text-foreground/50 line-through">
+      {/* Detalle de cada curso que se suma — es lo que el equipo necesita ver */}
+      <ul className="mt-9 grid gap-3 sm:grid-cols-2">
+        {upgrade.missingCourses.map((course) => (
+          <li key={course.id} className="card-ink flex items-start gap-3 rounded-xl p-3">
+            <img
+              src={course.thumb}
+              alt=""
+              className="h-16 w-24 shrink-0 rounded-lg object-cover opacity-90"
+            />
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold tracking-[0.14em] text-lime uppercase">
+                Curso {course.n}
+              </p>
+              <p className="mt-1 text-[14px] leading-tight font-bold text-pretty">{course.short}</p>
+              <p className="mt-1.5 text-[12px] leading-snug text-foreground/65">
+                {course.shortDesc}
+              </p>
+              <p className="mt-1.5 text-[12.5px] font-bold text-foreground/45 line-through">
                 {formatUSD(course.priceCents)}
-              </span>
-            </li>
-          ))}
-        </ul>
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
 
-        <div className="mt-6 border-t border-white/15 pt-6 text-center">
+      <div className="card-ink mt-6 rounded-2xl p-6 sm:p-8">
+        <div className="text-center">
           <p className="text-[13px] text-foreground/70">
             Por separado costarían{" "}
             <span className="line-through">{formatUSD(upgrade.missingValueCents)}</span>. Hoy los

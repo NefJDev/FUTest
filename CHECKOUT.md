@@ -15,21 +15,49 @@ después no se pueda construir dentro de la plataforma:
 | Kajabi                              | Se puede diseñar        | Acá                        |
 | ----------------------------------- | ----------------------- | -------------------------- |
 | Carrito de compras                  | **No existe**           | No hay carrito             |
-| Página de checkout                  | Plantilla fija          | `/checkout` (fondo claro)  |
-| Order Bump                          | Bloque con checkbox     | Dentro del checkout        |
+| Popup checkout                      | Plantilla fija          | `CheckoutModal.tsx`        |
+| Order Bump                          | Bloque fijo del popup   | "AGREGAR A TU COMPRA"      |
 | Payment Plan de una Offer           | Opciones de la Offer    | Radios "1 pago / 3 pagos"  |
 | Upsell / Downsell post-compra       | **Page builder**        | `/oferta`, `/oferta-final` |
 | Thank you page                      | **Page builder**        | `/gracias`                 |
+
+### El checkout está calcado de una tienda Kajabi real
+
+Se tomó como referencia `cursos.marlylactancia.com/chaoteta`, que corre en
+Kajabi y usa **popup checkout** (`#popup_checkout_...`, renderizado con Sage,
+el design system de Kajabi). De ahí salió la estructura, campo por campo:
+
+```
+┌─ [logo] Marca ────────────────────────────────────── X ─┐
+│ Título del producto        │ Contacto                   │
+│ [img]  USD  USD 197.00     │  Correo electrónico        │
+│ ─────────────────────────  │  Nombre completo           │
+│ AGREGAR A TU COMPRA        │ ────────────────────────── │
+│ ┌───────────────────────┐  │ Método de pago             │
+│ │[img] Título       (+) │  │  ○ Tarjeta                 │
+│ │      Descripción      │  │  ○ PayPal                  │
+│ │      USD 300.00       │  │  ☐ Guardar esta tarjeta    │
+│ └───────────────────────┘  │ ────────────────────────── │
+│ Resumen                    │ [ Pagar USD 197.00 USD ]   │
+│ Ahora      USD  USD 197.00 │ Transacciones seguras...   │
+└─────────────────────────────────────────────────────────┘
+```
+
+Lo único que cambia respecto a la referencia son el logo, los colores y la
+tipografía — que es justamente lo que Kajabi deja configurar en el tema.
 
 Dos consecuencias importantes:
 
 1. **No se pueden comprar dos cursos sueltos en una sola transacción.** En
    Kajabi cada Offer tiene su propio checkout. Si alguien quiere dos cursos,
    son dos compras. Por eso los botones llevan directo a `/checkout?offer=<id>`.
-2. **El checkout se ve más sobrio que el resto del sitio.** Es intencional: esa
-   página no pasa por el page builder, solo se le puede cambiar logo, colores y
+2. **El checkout se ve más sobrio que el resto del sitio.** Es intencional: el
+   popup no pasa por el page builder, solo se le puede cambiar logo, colores y
    textos. Las páginas de upsell, downsell y gracias sí llevan diseño de marca
    porque esas sí son páginas del builder.
+3. **Los métodos de pago dependen de la cuenta.** Se muestran Tarjeta y PayPal,
+   que son los que Kajabi soporta de fábrica. Klarna y Afterpay (que aparecen en
+   la referencia) salen de Stripe y hay que activarlos aparte según el país.
 
 ## El funnel
 
@@ -101,8 +129,9 @@ de la demo.
 | `src/lib/catalog.ts`                       | **Fuente única de verdad**: precios, cuotas, upgrade |
 | `src/lib/orders.ts`                        | Server functions: compra principal y oferta post-compra |
 | `src/lib/card.ts`                          | Validación de tarjeta (Luhn, marca, vencimiento)     |
-| `src/components/checkout/CheckoutShell.tsx`| Marco del checkout (claro) y de las páginas del builder |
-| `src/routes/checkout.tsx`                  | Checkout + Order Bump + plan de pago                 |
+| `src/components/checkout/CheckoutModal.tsx`| **Popup checkout** + Order Bump + plan de pago       |
+| `src/components/checkout/CheckoutShell.tsx`| Marco de las páginas del page builder                |
+| `src/routes/checkout.tsx`                  | Enlace directo al popup (`?offer=<id>`)              |
 | `src/routes/oferta.tsx`                    | Upsell post-compra                                   |
 | `src/routes/oferta-final.tsx`              | Downsell post-compra                                 |
 | `src/routes/gracias.tsx`                   | Confirmación con los recibos                         |
