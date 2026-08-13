@@ -37,6 +37,7 @@ import {
   calcUpgrade,
   formatAmount,
   formatUSD,
+  getPairedOffer,
   getProduct,
   splitInstallments,
   type ProductId,
@@ -55,7 +56,7 @@ import {
   validateExpiry,
   validateName,
 } from "@/lib/card";
-import { saveSession, submitCheckout } from "@/lib/orders";
+import { saveSession, submitCheckout, type BumpId } from "@/lib/orders";
 
 /* ------------------------------------------------------------- marca (tema) */
 
@@ -126,10 +127,13 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
   const product = getProduct(offer);
   const isBundle = product?.id === BUNDLE_ID;
   const upgrade = product && !isBundle ? calcUpgrade(product.id) : null;
+  // Curso complementario según el mapa de afinidad del catálogo.
+  const paired = product && !isBundle ? getPairedOffer(product.id) : null;
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Errors>({});
-  const [bump, setBump] = useState(false);
+  const [pairedTaken, setPairedTaken] = useState(false);
+  const [bundleTaken, setBundleTaken] = useState(false);
   const [paymentPlan, setPaymentPlan] = useState<"full" | "x3">("full");
   const [method, setMethod] = useState<"card" | "paypal">("card");
   const [saveCard, setSaveCard] = useState(false);
@@ -152,14 +156,34 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
 
   if (!product) return null;
 
-  const bumpApplied = bump && upgrade !== null;
-  const totalCents = bumpApplied ? BUNDLE_PRICE_CENTS : product.priceCents;
+  const bundleApplied = bundleTaken && upgrade !== null;
+  const pairedApplied = pairedTaken && paired !== null && !bundleApplied;
+
+  const totalCents = bundleApplied
+    ? BUNDLE_PRICE_CENTS
+    : product.priceCents + (pairedApplied && paired ? paired.priceCents : 0);
+
   const canPayInInstallments = totalCents === BUNDLE_PRICE_CENTS;
   const plan = canPayInInstallments ? paymentPlan : "full";
   const installments =
     plan === "x3" ? splitInstallments(totalCents, INSTALLMENT_COUNT) : [totalCents];
   const dueTodayCents = installments[0] ?? 0;
   const brand = detectBrand(form.cardNumber);
+
+  const togglePaired = () => {
+    if (bundleApplied) return; // ya está incluido
+    setPairedTaken((prev) => !prev);
+  };
+
+  const toggleBundle = () => {
+    setBundleTaken((prev) => {
+      const next = !prev;
+      // El bundle contiene al curso complementario: se desmarca solo.
+      if (next) setPairedTaken(false);
+      else setPaymentPlan("full");
+      return next;
+    });
+  };
 
   const setField = (field: FieldName, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -203,9 +227,11 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
         ? { brand: "PayPal", last4: "0000" }
         : { brand: brandLabel(brand), last4: last4(form.cardNumber) };
 
+    const bumps: BumpId[] = bundleApplied ? ["bundle"] : pairedApplied ? ["paired"] : [];
+
     try {
       const result = await submitCheckout({
-        data: { offer: product.id, bump: bumpApplied, paymentPlan: plan, customer, card },
+        data: { offer: product.id, bumps, paymentPlan: plan, customer, card },
       });
 
       if (!result.ok) {
@@ -214,14 +240,15 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
         return;
       }
 
-      const ownsBundle = isBundle || bumpApplied;
+      const ownsBundle = isBundle || bundleApplied;
       saveSession({
         main: result.order,
         baseOffer: product.id,
         ownsBundle,
         pipeline: {
           bumpOffered: upgrade !== null,
-          bumpTaken: bumpApplied,
+          pairedTaken: pairedApplied,
+          bundleBumpTaken: bundleApplied,
           upsellShown: false,
           upsellAccepted: false,
           downsellShown: false,
@@ -335,78 +362,64 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
               )}
             </div>
 
-            {/* --------------------------------------------------- order bump */}
-            {upgrade && upgrade.upgradeCostCents > 0 && (
+            {/* ------------------------------------------------- order bumps */}
+            {paired && upgrade && upgrade.upgradeCostCents > 0 && (
               <>
                 <p className="mt-7 border-t border-[#e6e8ec] pt-6 text-[11px] font-semibold tracking-[0.1em] text-[#6b7280] uppercase">
                   Agregar a tu compra
                 </p>
 
-                <div
-                  className={`mt-3 rounded-lg border bg-white p-3 transition-colors ${
-                    bumpApplied ? "border-[#6265fe] ring-1 ring-[#6265fe]/25" : "border-[#e3e5e9]"
-                  }`}
+                {/* Bump 1 — el curso complementario, con el porqué de la sugerencia */}
+                <BumpCard
+                  selected={pairedTaken}
+                  disabled={bundleTaken}
+                  onToggle={togglePaired}
+                  thumb={paired.course.thumb}
+                  eyebrow={`Combina con lo que ya llevas · Curso ${paired.course.n}`}
+                  title={paired.course.short}
+                  priceCents={paired.priceCents}
+                  listPriceCents={paired.listPriceCents}
+                  badge={`-${paired.discountPercent}%`}
+                  disabledNote={bundleTaken ? "Ya incluido en el bundle" : undefined}
                 >
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={upgrade.missingCourses[0]?.thumb}
-                      alt=""
-                      className="h-[60px] w-[60px] shrink-0 rounded-md object-cover"
-                    />
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-[#5a6070]">
+                    <strong className="text-[#1a1d26]">POR QUÉ TE LO RECOMENDAMOS</strong> —{" "}
+                    {paired.reason}
+                  </p>
+                </BumpCard>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] leading-snug font-bold">
-                        Los otros {upgrade.missingCourses.length} cursos del bundle
-                      </p>
-                      <p className="mt-1 text-[12.5px] leading-relaxed text-[#5a6070]">
-                        <strong className="text-[#1a1d26]">PRECIO SOLO DISPONIBLE AQUÍ</strong> —
-                        completa el bundle de {formatUSD(BUNDLE_PRICE_CENTS)} y llévate los 5
-                        cursos. Por separado costarían{" "}
-                        <span className="line-through">{formatUSD(upgrade.missingValueCents)}</span>
-                        . ✅
-                      </p>
-
-                      <ul className="mt-2.5 space-y-1.5">
-                        {upgrade.missingCourses.map((course) => (
-                          <li
-                            key={course.id}
-                            className="flex items-center gap-2 text-[12px] text-[#4b5563]"
-                          >
-                            <span className="text-[#22a06b]">✓</span>
-                            <span className="min-w-0 flex-1 truncate">{course.short}</span>
-                            <span className="whitespace-nowrap text-[#9aa0ab] line-through">
-                              {formatUSD(course.priceCents)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <p className="mt-2.5 text-[14px] font-semibold">
-                        USD {formatAmount(upgrade.upgradeCostCents)}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBump((prev) => {
-                          if (prev) setPaymentPlan("full");
-                          return !prev;
-                        });
-                      }}
-                      aria-label={bumpApplied ? "Quitar de tu compra" : "Agregar a tu compra"}
-                      aria-pressed={bumpApplied}
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-lg leading-none transition-colors ${
-                        bumpApplied
-                          ? "border-transparent text-white"
-                          : "border-[#d6d9de] text-[#4b5563] hover:border-[#6265fe] hover:text-[#6265fe]"
-                      }`}
-                      style={bumpApplied ? { backgroundColor: BRAND.action } : undefined}
-                    >
-                      {bumpApplied ? "✓" : "+"}
-                    </button>
-                  </div>
-                </div>
+                {/* Bump 2 — completar los 5 cursos */}
+                <BumpCard
+                  selected={bundleTaken}
+                  onToggle={toggleBundle}
+                  thumb={upgrade.missingCourses[0]?.thumb}
+                  eyebrow="La opción más completa"
+                  title={`Llévate los 5 cursos — bundle completo`}
+                  priceCents={upgrade.upgradeCostCents}
+                  listPriceCents={upgrade.missingValueCents}
+                  badge={`-${upgrade.discountPercent}%`}
+                  highlight
+                >
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-[#5a6070]">
+                    <strong className="text-[#1a1d26]">PRECIO SOLO DISPONIBLE AQUÍ</strong> —
+                    completa el bundle de {formatUSD(BUNDLE_PRICE_CENTS)} y desbloquea también el
+                    plan de {INSTALLMENT_COUNT} pagos. ✅
+                  </p>
+                  <ul className="mt-2.5 space-y-1.5">
+                    {upgrade.missingCourses.map((course) => (
+                      <li
+                        key={course.id}
+                        className="flex items-center gap-2 text-[12px] text-[#4b5563]"
+                      >
+                        <span className="text-[#22a06b]">✓</span>
+                        <span className="min-w-0 flex-1 truncate">{course.short}</span>
+                        <span className="whitespace-nowrap text-[#9aa0ab] line-through">
+                          {formatUSD(course.priceCents)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </BumpCard>
               </>
             )}
 
@@ -435,7 +448,23 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                 </span>
               </li>
 
-              {bumpApplied && upgrade && (
+              {pairedApplied && paired && (
+                <li className="flex items-center gap-3">
+                  <img
+                    src={paired.course.thumb}
+                    alt=""
+                    className="h-11 w-16 shrink-0 rounded object-cover"
+                  />
+                  <span className="min-w-0 flex-1 text-[13.5px] leading-snug">
+                    {paired.course.short}
+                  </span>
+                  <span className="text-[13.5px] whitespace-nowrap">
+                    USD {formatAmount(paired.priceCents)}
+                  </span>
+                </li>
+              )}
+
+              {bundleApplied && upgrade && (
                 <li className="flex items-center gap-3">
                   <span
                     className="grid h-11 w-16 shrink-0 place-items-center rounded text-[11px] font-bold text-white"
@@ -714,6 +743,100 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
 }
 
 /* ------------------------------------------------------------------ átomos */
+
+/**
+ * Tarjeta de Order Bump. En Kajabi cada una de estas es un bump configurado
+ * dentro de la Offer: imagen, título, descripción enriquecida y precio propio.
+ */
+function BumpCard({
+  selected,
+  disabled = false,
+  onToggle,
+  thumb,
+  eyebrow,
+  title,
+  priceCents,
+  listPriceCents,
+  badge,
+  highlight = false,
+  disabledNote,
+  children,
+}: {
+  selected: boolean;
+  disabled?: boolean;
+  onToggle: () => void;
+  thumb: string | undefined;
+  eyebrow: string;
+  title: string;
+  priceCents: number;
+  listPriceCents: number;
+  badge: string;
+  highlight?: boolean;
+  disabledNote?: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`mt-3 rounded-lg border bg-white p-3 transition-colors ${
+        selected
+          ? "border-[#6265fe] ring-1 ring-[#6265fe]/25"
+          : highlight
+            ? "border-[#e0a800] bg-[#fffdf6]"
+            : "border-[#e3e5e9]"
+      } ${disabled ? "opacity-55" : ""}`}
+    >
+      <div className="flex items-start gap-3">
+        {thumb ? (
+          <img src={thumb} alt="" className="h-[60px] w-[60px] shrink-0 rounded-md object-cover" />
+        ) : (
+          <span
+            className="h-[60px] w-[60px] shrink-0 rounded-md"
+            style={{ backgroundColor: BRAND.action }}
+          />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold tracking-[0.08em] text-[#6265fe] uppercase">
+            {eyebrow}
+          </p>
+          <p className="mt-0.5 text-[14px] leading-snug font-bold">{title}</p>
+
+          {children}
+
+          <p className="mt-2.5 flex flex-wrap items-baseline gap-2">
+            <span className="text-[14px] font-semibold">USD {formatAmount(priceCents)}</span>
+            <span className="text-[12.5px] text-[#9aa0ab] line-through">
+              {formatUSD(listPriceCents)}
+            </span>
+            <span className="rounded bg-[#e8f7ef] px-1.5 py-0.5 text-[11px] font-bold text-[#1c7f52]">
+              {badge}
+            </span>
+          </p>
+
+          {disabled && disabledNote && (
+            <p className="mt-1.5 text-[11.5px] font-medium text-[#6b7280]">{disabledNote}</p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={disabled}
+          aria-label={selected ? `Quitar ${title}` : `Agregar ${title}`}
+          aria-pressed={selected}
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-lg leading-none transition-colors ${
+            selected
+              ? "border-transparent text-white"
+              : "border-[#d6d9de] text-[#4b5563] hover:border-[#6265fe] hover:text-[#6265fe]"
+          } ${disabled ? "cursor-not-allowed" : ""}`}
+          style={selected ? { backgroundColor: BRAND.action } : undefined}
+        >
+          {selected ? "✓" : "+"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const CurrencyChip = () => (
   <span className="rounded-full border border-[#d6d9de] px-2 py-0.5 text-[11px] font-medium text-[#6b7280]">

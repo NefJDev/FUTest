@@ -40,6 +40,11 @@ export type Course = {
   /** Descripción corta (tarjeta individual y carrito). */
   shortDesc: string;
   priceCents: number;
+  /**
+   * Precio especial cuando el curso se ofrece como Order Bump dentro del
+   * checkout de otro curso. En Kajabi es el precio que se le pone al bump.
+   */
+  bumpPriceCents: number;
   thumb: string;
 };
 
@@ -54,6 +59,7 @@ export const COURSES: Course[] = [
     desc: "Del modelo de negocio a la operación real. Estructura, monetización y escala.",
     shortDesc: "Estructura, monetización y escala.",
     priceCents: 19700,
+    bumpPriceCents: 9700,
     thumb: c1.url,
   },
   {
@@ -66,6 +72,7 @@ export const COURSES: Course[] = [
     desc: "La estrategia exacta de crecimiento. Cómo construir audiencia y convertirla en ingreso.",
     shortDesc: "Cómo construir audiencia y convertirla en ingreso.",
     priceCents: 29700,
+    bumpPriceCents: 14700,
     thumb: c2.url,
   },
   {
@@ -78,6 +85,7 @@ export const COURSES: Course[] = [
     desc: "Cómo invertir en bienes raíces desde tus ingresos digitales. La estrategia que yo uso.",
     shortDesc: "Cómo invertir en bienes raíces desde tus ingresos digitales.",
     priceCents: 39700,
+    bumpPriceCents: 19700,
     thumb: c3.url,
   },
   {
@@ -90,6 +98,7 @@ export const COURSES: Course[] = [
     desc: "Portafolios, estrategias y el camino hacia la libertad financiera real. Sin teoría vacía.",
     shortDesc: "Portafolios, estrategias y el camino hacia la libertad financiera.",
     priceCents: 24700,
+    bumpPriceCents: 12700,
     thumb: c4.url,
   },
   {
@@ -102,6 +111,7 @@ export const COURSES: Course[] = [
     desc: "Todo lo que necesitas para producir contenido profesional desde el primer día.",
     shortDesc: "Producir contenido profesional desde el primer día.",
     priceCents: 19700,
+    bumpPriceCents: 9700,
     thumb: c5.url,
   },
 ];
@@ -205,6 +215,74 @@ export function splitInstallments(totalCents: number, count = INSTALLMENT_COUNT)
   const base = Math.floor(totalCents / count);
   const remainder = totalCents - base * count;
   return Array.from({ length: count }, (_, i) => (i < remainder ? base + 1 : base));
+}
+
+/* --------------------------------------------------------- venta cruzada */
+
+/**
+ * Curso complementario que se ofrece dentro del checkout de cada curso.
+ *
+ * No es un algoritmo: es un emparejamiento decidido a mano, tema por tema.
+ * En Kajabi esto se configura como un Order Bump dentro de la Offer de cada
+ * curso, así que hay que cargar estos 5 pares uno por uno. El resultado para
+ * el comprador es idéntico al de una recomendación "inteligente".
+ */
+export const PAIRINGS: Record<CourseId, { with: CourseId; reason: string }> = {
+  "empresa-contenido": {
+    with: "grabacion-edicion",
+    reason:
+      "Vas a montar tu empresa de contenido. Para sostenerla necesitas grabar y editar tú mismo, sin depender de nadie ni pagar producción.",
+  },
+  "un-millon-seguidores": {
+    with: "empresa-contenido",
+    reason:
+      "Vas a construir la audiencia. Este te enseña a convertirla en una empresa que factura todos los meses, no solo en seguidores.",
+  },
+  "real-estate": {
+    with: "un-millon-seguidores",
+    reason:
+      "Para comprar tu primera propiedad primero hay que generar el capital. La audiencia es lo que financia la entrada.",
+  },
+  inversiones: {
+    with: "real-estate",
+    reason:
+      "Ya vas a saber armar tu portafolio. El siguiente paso natural son los activos reales: es la estrategia que yo uso.",
+  },
+  "grabacion-edicion": {
+    with: "empresa-contenido",
+    reason:
+      "Ya vas a saber producir. Ahora convierte esa habilidad en un negocio con estructura, clientes y precios.",
+  },
+};
+
+export type PairedOffer = {
+  course: Course;
+  reason: string;
+  /** Precio del curso dentro del bump. */
+  priceCents: number;
+  /** Precio de lista, para tacharlo. */
+  listPriceCents: number;
+  discountPercent: number;
+};
+
+/** Devuelve el curso complementario que se ofrece junto a `courseId`. */
+export function getPairedOffer(courseId: string): PairedOffer | null {
+  const base = getCourse(courseId);
+  if (!base) return null;
+
+  const pairing = PAIRINGS[base.id];
+  const course = getCourse(pairing.with);
+  if (!course) return null;
+
+  return {
+    course,
+    reason: pairing.reason,
+    priceCents: course.bumpPriceCents,
+    listPriceCents: course.priceCents,
+    discountPercent: Math.round(
+      ((course.priceCents - course.bumpPriceCents) / course.priceCents) * 100,
+    ),
+  };
 }
 
 /* ------------------------------------------------------------------- upsell */

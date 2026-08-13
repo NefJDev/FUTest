@@ -93,9 +93,13 @@ function ThankYouPage() {
         <ul className="mt-3 space-y-2 text-sm text-foreground/80">
           <Step
             done={session.pipeline.bumpOffered}
-            label="Se mostró el Order Bump en el checkout"
+            label="Se mostraron los Order Bumps en el checkout"
           />
-          <Step done={session.pipeline.bumpTaken} label="Marcó el Order Bump" />
+          <Step
+            done={session.pipeline.pairedTaken}
+            label="Agregó el curso complementario sugerido"
+          />
+          <Step done={session.pipeline.bundleBumpTaken} label="Completó el bundle desde el bump" />
           <Step done={session.pipeline.upsellShown} label="Se mostró el upsell post-compra" />
           <Step done={session.pipeline.upsellAccepted} label="Aceptó el upsell" />
           <Step done={session.pipeline.downsellShown} label="Se mostró el downsell" />

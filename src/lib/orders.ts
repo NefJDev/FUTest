@@ -28,6 +28,7 @@ import {
   calcUpgrade,
   formatUSD,
   getCourse,
+  getPairedOffer,
   getProduct,
   splitInstallments,
 } from "./catalog";
@@ -44,11 +45,20 @@ const cardSchema = z.object({
   last4: z.string().regex(/^\d{4}$/, "Tarjeta inválida"),
 });
 
+/**
+ * Order Bumps del checkout. Cada Offer de curso suelto lleva dos, igual que
+ * se configurarían en Kajabi:
+ *   - `paired` → el curso complementario a precio especial
+ *   - `bundle` → completar los 5 cursos
+ */
+export const BUMP_IDS = ["paired", "bundle"] as const;
+export type BumpId = (typeof BUMP_IDS)[number];
+
 const checkoutSchema = z.object({
   /** Offer que se está comprando: un curso suelto o el bundle. */
   offer: z.string().min(1),
-  /** Order Bump marcado (solo aplica a offers de un curso suelto). */
-  bump: z.boolean(),
+  /** Order Bumps marcados. */
+  bumps: z.array(z.enum(BUMP_IDS)).max(2),
   paymentPlan: z.enum(["full", "x3"]),
   customer: customerSchema,
   card: cardSchema,
@@ -110,8 +120,12 @@ export type PurchaseSession = {
   /** Ya tiene los 5 cursos (compró el bundle o aceptó el upgrade). */
   ownsBundle: boolean;
   pipeline: {
+    /** Se mostraron los Order Bumps del checkout. */
     bumpOffered: boolean;
-    bumpTaken: boolean;
+    /** Marcó el bump del curso complementario. */
+    pairedTaken: boolean;
+    /** Marcó el bump que completa el bundle. */
+    bundleBumpTaken: boolean;
     upsellShown: boolean;
     upsellAccepted: boolean;
     downsellShown: boolean;
@@ -206,16 +220,38 @@ export const submitCheckout = createServerFn({ method: "POST" })
       { id: product.id, title: product.title, priceCents: product.priceCents },
     ];
 
-    // Order Bump: solo existe sobre un curso suelto y agrega los que faltan
-    // al precio que completa el bundle.
-    if (data.bump) {
-      if (isBundle) {
-        return {
-          ok: false,
-          code: "invalid_offer",
-          error: "El bundle completo no admite Order Bump.",
-        };
+    const bumps = new Set(data.bumps);
+
+    if (bumps.size > 0 && isBundle) {
+      return {
+        ok: false,
+        code: "invalid_offer",
+        error: "El bundle completo no admite Order Bumps: ya incluye todo.",
+      };
+    }
+
+    // Los dos bumps son excluyentes: el bundle ya contiene al curso emparejado.
+    if (bumps.has("bundle") && bumps.has("paired")) {
+      return {
+        ok: false,
+        code: "invalid_offer",
+        error: "El bundle ya incluye el curso complementario.",
+      };
+    }
+
+    if (bumps.has("paired")) {
+      const paired = getPairedOffer(product.id);
+      if (!paired) {
+        return { ok: false, code: "invalid_offer", error: "No hay curso complementario." };
       }
+      lines.push({
+        id: paired.course.id,
+        title: paired.course.short,
+        priceCents: paired.priceCents,
+      });
+    }
+
+    if (bumps.has("bundle")) {
       const upgrade = calcUpgrade(product.id);
       lines.push({
         id: "upgrade-bundle",

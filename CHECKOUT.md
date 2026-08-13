@@ -77,7 +77,35 @@ Clic en un curso  →  CHECKOUT
               └───────────┴─────────────┴──→  GRACIAS
 ```
 
-### Order Bump — crédito del curso elegido
+### Venta cruzada — dos Order Bumps por checkout
+
+El checkout nunca ofrece solo "compra y listo". Cada curso lleva **dos bumps**:
+
+1. **El curso complementario**, emparejado por tema y a precio especial, con una
+   línea explicando *por qué* se lo recomendamos.
+2. **El bundle completo**, que siempre está disponible como tercera opción.
+
+El mapa de afinidad vive en `PAIRINGS` dentro de `src/lib/catalog.ts`:
+
+| Si compra…                        | Se le ofrece…                     | Precio bump | Lista |
+| --------------------------------- | --------------------------------- | ----------: | ----: |
+| 01 · Empresa de contenido         | 05 · Grabación y edición          |         $97 |  $197 |
+| 02 · De 0 a 1 millón de seguidores| 01 · Empresa de contenido         |         $97 |  $197 |
+| 03 · Real Estate                  | 02 · De 0 a 1 millón de seguidores|        $147 |  $297 |
+| 04 · Inversiones                  | 03 · Real Estate                  |        $197 |  $397 |
+| 05 · Grabación y edición          | 01 · Empresa de contenido         |         $97 |  $197 |
+
+> **Esto no es un algoritmo.** En Kajabi cada emparejamiento se carga a mano como
+> un Order Bump dentro de la Offer de ese curso — son 5 Offers × 2 bumps. Para el
+> comprador el resultado es idéntico al de una recomendación automática, y es
+> 100% reproducible en la plataforma.
+
+**Una salvedad honesta:** Kajabi no sabe que los dos bumps son excluyentes. Acá,
+al marcar el bundle se desmarca y bloquea el complementario ("Ya incluido en el
+bundle"), porque de lo contrario el cliente pagaría dos veces por el mismo curso.
+En Kajabi habría que resolverlo con el texto del bump o aceptando ese riesgo.
+
+### Order Bump del bundle — crédito del curso elegido
 
 Lo que ya está pagando por el curso se le acredita contra el precio del bundle,
 así que solo abona la diferencia hasta $497:
@@ -170,8 +198,9 @@ node scripts/fetch-assets.mjs
 
 1. Crear una **Offer** por cada curso ($197 … $397) y una para el bundle ($497).
 2. En la Offer del bundle, añadir un **Payment Plan** de 3 cuotas.
-3. En cada Offer de curso suelto, añadir un **Order Bump** que apunte al
-   producto "los otros 4 cursos" al precio de la tabla de arriba.
+3. En cada Offer de curso suelto, añadir **dos Order Bumps**: el curso
+   complementario según la tabla de venta cruzada, y "los otros 4 cursos" al
+   precio del upgrade.
 4. Crear un **Sales Pipeline** con la página de upsell y, después, la de
    downsell, usando los mismos textos de `/oferta` y `/oferta-final`.
 5. Apuntar los botones de la landing a la URL de checkout de cada Offer.
