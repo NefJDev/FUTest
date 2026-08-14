@@ -98,19 +98,24 @@ function Header() {
           <img
             src={headerLogo.url}
             alt="Francisco en las Redes University"
-            className="h-8 w-auto max-w-none shrink-0 object-contain md:h-10"
+            /* max-w-full y no max-w-none: en pantallas estrechas el logo
+               ocupaba su ancho natural y se metía debajo del botón de compra.
+               Así cede espacio cuando no cabe; en escritorio nunca se aplica. */
+            className="h-8 w-auto max-w-full object-contain md:h-10"
           />
         </ScrollLink>
         <nav className="flex shrink-0 items-center gap-3 md:gap-6">
           <ScrollLink to="programa" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
-            Programa
+            Cursos
           </ScrollLink>
-          <ScrollLink to="acceso" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
-            Acceso
+          <ScrollLink to="resenas" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
+            Resultados
           </ScrollLink>
-          <ScrollLink to="bundle" className="btn-indigo">
-            Inscribirme
-          </ScrollLink>
+          {/* Abre el checkout del bundle en vez de bajar a la sección: el
+              nombre promete comprar, así que evita el paso intermedio. */}
+          <BuyButton offer={BUNDLE_ID} className="btn-indigo">
+            Comprar el bundle
+          </BuyButton>
         </nav>
       </div>
     </header>
