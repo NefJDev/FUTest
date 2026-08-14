@@ -782,7 +782,14 @@ function BumpCard({
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold tracking-[0.08em] text-[#6265fe] uppercase">
+          {/* Sin color propio hereda el del modal, que es el mismo que usa el
+              título de abajo. El morado se reserva para la tarjeta destacada,
+              donde sí cumple una función: separarla del bump normal. */}
+          <p
+            className={`text-[10px] font-semibold tracking-[0.08em] uppercase ${
+              highlight ? "text-[#6265fe]" : ""
+            }`}
+          >
             {eyebrow}
           </p>
           <p className="mt-0.5 text-[14px] leading-snug font-bold">{title}</p>
