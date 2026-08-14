@@ -186,7 +186,7 @@ function Hero() {
                   price={`${formatUSD(CHEAPEST_COURSE_CENTS)} c/u`}
                   cta="Elegir curso"
                   tone="soft"
-                  scrollTo={INDIVIDUAL_SECTION_ID}
+                  scrollTo="programa"
                 />
               </Tilt>
             </Reveal>
@@ -400,8 +400,10 @@ function About() {
 /* ----------------------------------------------------------------- program */
 
 function Program() {
+  /* scroll-mt deja aire para el header sticky: es destino del botón "Elegir
+     curso" del hero y del enlace "Programa" del header. */
   return (
-    <section id="programa" className="relative pb-16 md:pb-24">
+    <section id="programa" className="relative scroll-mt-24 pb-16 md:pb-24">
       <div className="relative mx-auto max-w-[1320px] px-5 md:px-10">
         <Reveal className="panel-glow rounded-3xl p-6 sm:p-10 md:p-14">
           <p className="eyebrow text-foreground/80">Programa académico</p>
@@ -532,7 +534,7 @@ function Comparison() {
           <BundleOffer id="bundle" />
         </div>
 
-        {/* individual cards — destino del botón "Elegir curso" del hero.
+        {/* individual cards — grilla de cursos sueltos.
             scroll-mt deja aire para el header sticky y para los precios,
             que sobresalen por encima de cada tarjeta. */}
         <div id={INDIVIDUAL_SECTION_ID} className="mt-20 scroll-mt-32 text-center">
