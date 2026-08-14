@@ -573,15 +573,13 @@ function IndividualCard({
           {card.desc}
         </p>
 
+        {/* Sin botón de compra: los cursos sueltos solo se venden desde el
+            programa académico. Aquí las tarjetas son informativas. */}
         <span className="card-red mt-auto inline-block rounded-md px-4 py-3 text-sm leading-tight font-bold text-foreground uppercase">
           Incluido
           <br />
           en el bundle
         </span>
-
-        <BuyButton offer={card.id} className="btn-lime btn-sweep mt-3 w-full text-[0.7rem]">
-          Comprar solo este <Arrow />
-        </BuyButton>
       </div>
     </Reveal>
   );
