@@ -376,7 +376,7 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                   disabledNote={bundleTaken ? "Ya incluido en el bundle" : undefined}
                 >
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[#5a6070]">
-                    <strong className="text-[#1a1d26]">POR QUÉ TE LO RECOMENDAMOS</strong> —{" "}
+                    <strong className="text-[#1a1d26]">Por qué te lo recomendamos</strong> —{" "}
                     {paired.reason}
                   </p>
                 </BumpCard>
