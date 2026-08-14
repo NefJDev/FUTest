@@ -306,20 +306,11 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
             <h2 className="text-[20px] leading-snug font-semibold">{product.title}</h2>
 
             <div className="mt-4 flex items-center gap-4">
-              {product.thumb ? (
-                <img
-                  src={product.thumb}
-                  alt=""
-                  className="h-[70px] w-[110px] shrink-0 rounded-md object-cover"
-                />
-              ) : (
-                <span
-                  className="grid h-[70px] w-[110px] shrink-0 place-items-center rounded-md text-lg font-bold text-white"
-                  style={{ backgroundColor: BRAND.action }}
-                >
-                  5 cursos
-                </span>
-              )}
+              <img
+                src={product.thumb}
+                alt=""
+                className="h-[70px] w-[110px] shrink-0 rounded-md object-cover"
+              />
               <p className="flex items-baseline gap-2">
                 <CurrencyChip />
                 <span className="text-[26px] font-bold">USD {formatAmount(totalCents)}</span>
@@ -428,18 +419,11 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
 
             <ul className="mt-4 space-y-3">
               <li className="flex items-center gap-3">
-                {product.thumb ? (
-                  <img
-                    src={product.thumb}
-                    alt=""
-                    className="h-11 w-16 shrink-0 rounded object-cover"
-                  />
-                ) : (
-                  <span
-                    className="h-11 w-16 shrink-0 rounded"
-                    style={{ backgroundColor: BRAND.action }}
-                  />
-                )}
+                <img
+                  src={product.thumb}
+                  alt=""
+                  className="h-11 w-16 shrink-0 rounded object-cover"
+                />
                 <span className="min-w-0 flex-1 text-[13.5px] leading-snug">{product.title}</span>
                 <span className="text-[13.5px] whitespace-nowrap">
                   USD {formatAmount(product.priceCents)}

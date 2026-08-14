@@ -11,6 +11,7 @@ import c2 from "@/assets/c2.jpg.asset.json";
 import c3 from "@/assets/c3.jpg.asset.json";
 import c4 from "@/assets/c4.jpg.asset.json";
 import c5 from "@/assets/c5.jpg.asset.json";
+import francisco from "@/assets/francisco.jpg.asset.json";
 
 export type CourseId =
   | "empresa-contenido"
@@ -132,6 +133,12 @@ export const BUNDLE = {
   desc: "Acceso total a los 5 cursos, comunidad y actualizaciones para siempre.",
   priceCents: BUNDLE_PRICE_CENTS,
   listPriceCents: CATALOG_VALUE_CENTS,
+  /**
+   * Imagen de la Offer. En Kajabi cada Offer sube una sola imagen, así que el
+   * bundle usa la foto de Francisco en vez de un collage de los 5 cursos —
+   * que además ya aparecen listados con su miniatura dentro del checkout.
+   */
+  thumb: francisco.url,
   perks: [
     "Los 5 cursos completos en video",
     "Comunidad privada + sesiones mensuales",
@@ -158,7 +165,7 @@ export type Product = {
   short: string;
   desc: string;
   priceCents: number;
-  thumb?: string;
+  thumb: string;
 };
 
 export function getProduct(id: string): Product | undefined {
@@ -169,6 +176,7 @@ export function getProduct(id: string): Product | undefined {
       short: BUNDLE.short,
       desc: BUNDLE.desc,
       priceCents: BUNDLE.priceCents,
+      thumb: BUNDLE.thumb,
     };
   }
   const course = getCourse(id);
