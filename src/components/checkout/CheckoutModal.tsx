@@ -274,12 +274,10 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
         {/* ------------------------------------------------------- cabecera */}
         <div className="flex items-center justify-between gap-4 border-b border-[#eceef2] px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-3">
-            {/* El favicon es transparente y su mitad inferior es casi blanca
-                (#d0e7ff), así que el chip va en el azul tinta de la marca para
-                que el escudo se lea igual que en la pestaña del navegador.
+            {/* El escudo va directo sobre el blanco de la cabecera, sin chip.
                 overflow-hidden evita que la imagen pueda desbordarse sobre el
                 nombre, que es lo que pasaba con el lockup horizontal. */}
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-[#090d19]">
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg">
               <img src="/favicon.png" alt="" className="h-6 w-6 object-contain" />
             </span>
             <span className="truncate text-[15px] font-medium">{BRAND.name}</span>
