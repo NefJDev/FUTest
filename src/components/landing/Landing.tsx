@@ -440,9 +440,30 @@ function Program() {
 
 /* -------------------------------------------------------------- lime bands */
 
-function LimeBand({ children, top, bottom }: { children: React.ReactNode; top: string; bottom: string }) {
+function LimeBand({
+  children,
+  top,
+  bottom,
+  to,
+}: {
+  children: React.ReactNode;
+  top: string;
+  bottom: string;
+  /** Sección a la que salta la banda al pulsarla. Sin esto no es clicable. */
+  to?: string;
+}) {
   const darkBelow = bottom !== "transparent";
   void top;
+
+  /* Va en un <span block> y no en un <p> porque cuando la banda es clicable
+     este texto queda dentro del <button>, que solo admite contenido en línea.
+     Visualmente es idéntico. */
+  const texto = (
+    <span className="display block px-4 text-center text-[clamp(1rem,3.1vw,2.1rem)] text-ink uppercase">
+      {children}
+    </span>
+  );
+
   /* overflow-clip por el mismo motivo que <main>: el bloque de 320px que
      prolonga el fondo desborda 311px y haría de esta banda otra trampa. */
   return (
@@ -454,9 +475,19 @@ function LimeBand({ children, top, bottom }: { children: React.ReactNode; top: s
         >
           <div className="grid-lines-dark absolute inset-0" />
         </div>
-        <div className="relative bg-lime py-5 md:py-7">
-          <p className="display px-4 text-center text-[clamp(1rem,3.1vw,2.1rem)] text-ink uppercase">{children}</p>
-        </div>
+        {to ? (
+          /* La banda entera es el área de clic, y como el botón hereda la
+             inclinación del contenedor, la zona sensible calza con lo que se ve. */
+          <button
+            type="button"
+            onClick={() => scrollToSection(to)}
+            className="relative block w-full cursor-pointer bg-lime py-5 transition-[filter] hover:brightness-[1.06] md:py-7"
+          >
+            {texto}
+          </button>
+        ) : (
+          <div className="relative bg-lime py-5 md:py-7">{texto}</div>
+        )}
       </div>
     </div>
   );
@@ -830,7 +861,7 @@ function LandingContent() {
           </div>
         </div>
 
-        <LimeBand top="transparent" bottom="var(--ink)">
+        <LimeBand top="transparent" bottom="var(--ink)" to="bundle">
           Obtén el bundle completo por{" "}
           <span className="line-through">{formatUSD(CATALOG_VALUE_CENTS)}</span>{" "}
           {formatUSD(BUNDLE_PRICE_CENTS)}
