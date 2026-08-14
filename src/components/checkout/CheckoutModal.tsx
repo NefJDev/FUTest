@@ -27,7 +27,7 @@ import {
   type ReactNode,
 } from "react";
 
-import headerLogo from "@/assets/header_logo.png.asset.json";
+import headerSeal from "@/assets/header_seal.png.asset.json";
 import {
   BUNDLE_ID,
   BUNDLE_PRICE_CENTS,
@@ -62,7 +62,7 @@ import { saveSession, submitCheckout, type BumpId } from "@/lib/orders";
 
 /** Lo que en Kajabi se configura en el tema del checkout. */
 const BRAND = {
-  name: "Francisco University",
+  name: "Francisco en las Redes University",
   /** Color del botón de pago. */
   action: "#6265fe",
   actionHover: "#5053e8",
@@ -275,12 +275,11 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
         {/* ------------------------------------------------------- cabecera */}
         <div className="flex items-center justify-between gap-4 border-b border-[#eceef2] px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-9 w-14 shrink-0 place-items-center rounded-lg border border-[#e3e5e9]">
-              <img
-                src={headerLogo.url}
-                alt=""
-                className="h-4 w-auto max-w-none object-contain brightness-0"
-              />
+            {/* El chip es cuadrado porque el sello es redondo, y lleva
+                overflow-hidden para que la imagen no pueda volver a
+                desbordarse por encima del nombre de la marca. */}
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg border border-[#e3e5e9]">
+              <img src={headerSeal.url} alt="" className="h-7 w-7 object-contain" />
             </span>
             <span className="truncate text-[15px] font-medium">{BRAND.name}</span>
           </div>
