@@ -57,7 +57,7 @@ export const COURSES: Course[] = [
     short: "Cómo crear una empresa de contenido",
     cardTitle: "Cómo crear una\nempresa de contenido",
     eyebrow: "Fundación del sistema",
-    desc: "Del modelo de negocio a la operación real. Estructura, monetización y escala.",
+    desc: "Aprende a convertir tu contenido en un negocio: cómo estructurarlo, monetizarlo y hacerlo crecer.",
     shortDesc: "Estructura, monetización y escala.",
     priceCents: 19700,
     bumpPriceCents: 9700,
@@ -70,7 +70,7 @@ export const COURSES: Course[] = [
     short: "De 0 a 1 millón de seguidores",
     cardTitle: "Cómo crecer\nen redes",
     eyebrow: "Redes sociales",
-    desc: "La estrategia exacta de crecimiento. Cómo construir audiencia y convertirla en ingreso.",
+    desc: "Te enseño cómo pasé de 0 a 1 millón de seguidores y cómo convertir una audiencia en algo que también te genere dinero.",
     shortDesc: "Cómo construir audiencia y convertirla en ingreso.",
     priceCents: 29700,
     bumpPriceCents: 14700,
@@ -83,7 +83,7 @@ export const COURSES: Course[] = [
     short: "Real Estate",
     cardTitle: "Escuela de\nReal Estate",
     eyebrow: "Activos reales",
-    desc: "Cómo invertir en bienes raíces desde tus ingresos digitales. La estrategia que yo uso.",
+    desc: "Aprende cómo usar tus ingresos para entrar al real estate, entender las oportunidades y empezar a invertir en bienes raíces con una visión más estratégica.",
     shortDesc: "Cómo invertir en bienes raíces desde tus ingresos digitales.",
     priceCents: 39700,
     bumpPriceCents: 19700,
@@ -96,7 +96,7 @@ export const COURSES: Course[] = [
     short: "Inversiones",
     cardTitle: "Escuela de\nInversiones",
     eyebrow: "Finanzas",
-    desc: "Portafolios, estrategias y el camino hacia la libertad financiera real. Sin teoría vacía.",
+    desc: "Aprende a construir un portafolio con estrategia, tomar mejores decisiones con tu dinero y avanzar con más claridad hacia tu libertad financiera.",
     shortDesc: "Portafolios, estrategias y el camino hacia la libertad financiera.",
     priceCents: 24700,
     bumpPriceCents: 12700,
@@ -109,7 +109,7 @@ export const COURSES: Course[] = [
     short: "Grabación y edición básica",
     cardTitle: "Grabación y\nEdición (Básico)",
     eyebrow: "Bonus incluido",
-    desc: "Todo lo que necesitas para producir contenido profesional desde el primer día.",
+    desc: "Aprende a grabar y editar contenido con calidad desde el primer día, incluso si estás empezando desde cero.",
     shortDesc: "Producir contenido profesional desde el primer día.",
     priceCents: 19700,
     bumpPriceCents: 9700,
@@ -128,11 +128,13 @@ export const INSTALLMENT_COUNT = 3;
 
 export const BUNDLE = {
   id: BUNDLE_ID,
-  /**
-   * Vale como titular del checkout y también como concepto en el resumen y en
-   * el recibo de la página de gracias: los tres leen de aquí.
-   */
+  /** Cómo se presenta el bundle en el checkout: celebra la decisión. */
   title: "Buena decisión — Elegiste el bundle completo",
+  /**
+   * Nombre para el recibo. Ahí hay que decir qué se compró, no felicitar, así
+   * que no puede ser el mismo texto que el titular del checkout.
+   */
+  receiptTitle: "Bundle completo — los 5 cursos",
   short: "Bundle completo",
   desc: "Acceso total a los 5 cursos, comunidad y actualizaciones para siempre.",
   priceCents: BUNDLE_PRICE_CENTS,
@@ -177,7 +179,10 @@ export function withCourseNumber(id: string, title: string): string {
 
 export type Product = {
   id: ProductId;
+  /** Cómo se presenta el producto en el checkout. */
   title: string;
+  /** Nombre que va en el recibo. Para los cursos coincide con `title`. */
+  receiptTitle: string;
   short: string;
   desc: string;
   priceCents: number;
@@ -189,6 +194,7 @@ export function getProduct(id: string): Product | undefined {
     return {
       id: BUNDLE_ID,
       title: BUNDLE.title,
+      receiptTitle: BUNDLE.receiptTitle,
       short: BUNDLE.short,
       desc: BUNDLE.desc,
       priceCents: BUNDLE.priceCents,
@@ -200,8 +206,12 @@ export function getProduct(id: string): Product | undefined {
   return {
     id: course.id,
     title: course.title,
+    receiptTitle: course.title,
     short: course.short,
-    desc: course.shortDesc,
+    /* La descripción larga y no shortDesc: el checkout tiene una columna ancha
+       donde cabe, y ahí es donde hay que convencer. `shortDesc` se queda para
+       las tarjetas de 5 columnas de la landing, que sí van justas de sitio. */
+    desc: course.desc,
     priceCents: course.priceCents,
     thumb: course.thumb,
   };
