@@ -386,17 +386,17 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                   selected={bundleTaken}
                   onToggle={toggleBundle}
                   thumb={upgrade.missingCourses[0]?.thumb}
-                  eyebrow="La opción más completa"
-                  title={`Llévate los 5 cursos — bundle completo`}
+                  eyebrow="También puedes adquirir la opción más completa"
+                  title="Bundle completo: llévate los 5 cursos"
                   priceCents={upgrade.upgradeCostCents}
                   listPriceCents={upgrade.missingValueCents}
                   badge={`-${upgrade.discountPercent}%`}
                   highlight
                 >
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[#5a6070]">
-                    <strong className="text-[#1a1d26]">PRECIO SOLO DISPONIBLE AQUÍ</strong> —
-                    completa el bundle de {formatUSD(BUNDLE_PRICE_CENTS)} y desbloquea también el
-                    plan de {INSTALLMENT_COUNT} pagos. ✅
+                    <strong className="text-[#1a1d26]">Por qué te lo recomendamos</strong> — Con el
+                    bundle ves todo en orden, cada curso complementa al otro y entiendes el proceso
+                    completo.
                   </p>
                   <ul className="mt-2.5 space-y-1.5">
                     {upgrade.missingCourses.map((course) => (
@@ -783,15 +783,9 @@ function BumpCard({
 
         <div className="min-w-0 flex-1">
           {/* Sin color propio hereda el del modal, que es el mismo que usa el
-              título de abajo. El morado se reserva para la tarjeta destacada,
-              donde sí cumple una función: separarla del bump normal. */}
-          <p
-            className={`text-[10px] font-semibold tracking-[0.08em] uppercase ${
-              highlight ? "text-[#6265fe]" : ""
-            }`}
-          >
-            {eyebrow}
-          </p>
+              título de abajo. La tarjeta destacada ya se distingue por el borde
+              y el fondo, así que no necesita además un eyebrow de otro color. */}
+          <p className="text-[10px] font-semibold tracking-[0.08em] uppercase">{eyebrow}</p>
           <p className="mt-0.5 text-[14px] leading-snug font-bold">{title}</p>
 
           {children}
