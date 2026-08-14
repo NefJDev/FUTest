@@ -14,7 +14,15 @@ import {
   type ProductId,
 } from "@/lib/catalog";
 import { bundleCourses, courseThumbs, faqs, individualCards, pillars, reviews } from "./data";
-import { Reveal, Tilt, useAutoReveal, useInView, useParallax, useScrollProgress } from "./motion";
+import {
+  Reveal,
+  Tilt,
+  scrollToSection,
+  useAutoReveal,
+  useInView,
+  useParallax,
+  useScrollProgress,
+} from "./motion";
 
 const Arrow = () => <span aria-hidden="true">→</span>;
 
@@ -23,6 +31,36 @@ const CHEAPEST_COURSE_CENTS = Math.min(...COURSES.map((c) => c.priceCents));
 
 /** Ancla de la grilla de cursos sueltos. */
 const INDIVIDUAL_SECTION_ID = "cursos-individuales";
+
+/**
+ * Enlace interno a una sección de la página.
+ *
+ * Tiene que ser un <button> y no un <a href="#seccion">: el router de TanStack
+ * intercepta los clics en anclas y los trata como navegación, así que cancela
+ * el salto nativo y la página nunca se mueve.
+ */
+function ScrollLink({
+  to,
+  className,
+  children,
+  label,
+}: {
+  to: string;
+  className: string;
+  children: React.ReactNode;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => scrollToSection(to)}
+      className={className}
+      {...(label ? { "aria-label": label } : {})}
+    >
+      {children}
+    </button>
+  );
+}
 
 /**
  * Botón de compra. Abre el popup checkout de la Offer, que es como funciona la
@@ -52,23 +90,27 @@ function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[color-mix(in_oklab,var(--ink)_88%,transparent)] backdrop-blur-xl">
       <div className="mx-auto grid max-w-[1320px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 md:px-10">
-        <a href="#top" className="flex min-w-0 items-center overflow-visible">
+        <ScrollLink
+          to="top"
+          className="flex min-w-0 items-center overflow-visible"
+          label="Ir al inicio"
+        >
           <img
             src={headerLogo.url}
             alt="Francisco en las Redes University"
             className="h-8 w-auto max-w-none shrink-0 object-contain md:h-10"
           />
-        </a>
+        </ScrollLink>
         <nav className="flex shrink-0 items-center gap-3 md:gap-6">
-          <a href="#programa" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
+          <ScrollLink to="programa" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
             Programa
-          </a>
-          <a href="#acceso" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
+          </ScrollLink>
+          <ScrollLink to="acceso" className="hidden text-xs font-bold tracking-[0.14em] text-foreground/85 uppercase transition-colors hover:text-lime sm:block">
             Acceso
-          </a>
-          <a href="#bundle" className="btn-indigo">
+          </ScrollLink>
+          <ScrollLink to="bundle" className="btn-indigo">
             Inscribirme
-          </a>
+          </ScrollLink>
         </nav>
       </div>
     </header>
@@ -125,7 +167,10 @@ function Hero() {
               ref={sealRef}
               src={headerSeal.url}
               alt="Sello Francisco en las Redes University"
-              className="seal-parallax mx-auto block w-44 max-w-none overflow-visible object-contain p-1 opacity-90 sm:w-56 lg:mt-2 lg:w-72"
+              /* aspect-square reserva el alto antes de que cargue: sin esto el
+                 contenido se corre al cargar y los anclajes caen en el lugar
+                 equivocado. La imagen es cuadrada (1690x1690). */
+              className="seal-parallax mx-auto block aspect-square w-44 max-w-none overflow-visible object-contain p-1 opacity-90 sm:w-56 lg:mt-2 lg:w-72"
             />
           </div>
         </div>
@@ -141,7 +186,7 @@ function Hero() {
                   price={`${formatUSD(CHEAPEST_COURSE_CENTS)} c/u`}
                   cta="Elegir curso"
                   tone="soft"
-                  href={`#${INDIVIDUAL_SECTION_ID}`}
+                  scrollTo={INDIVIDUAL_SECTION_ID}
                 />
               </Tilt>
             </Reveal>
@@ -220,7 +265,7 @@ function PlanCard({
   cta,
   tone,
   popular,
-  href,
+  scrollTo,
   offer,
 }: {
   title: string;
@@ -229,8 +274,8 @@ function PlanCard({
   cta: string;
   tone: "soft" | "strong";
   popular?: boolean;
-  /** Ancla a otra sección, cuando la tarjeta no lleva directo a un checkout. */
-  href?: string;
+  /** Sección de destino, cuando la tarjeta no lleva directo a un checkout. */
+  scrollTo?: string;
   offer?: ProductId;
 }) {
   return (
@@ -257,9 +302,9 @@ function PlanCard({
             {cta} <Arrow />
           </BuyButton>
         ) : (
-          <a href={href ?? "#bundle"} className="btn-lime btn-sweep mt-8 w-full">
+          <ScrollLink to={scrollTo ?? "bundle"} className="btn-lime btn-sweep mt-8 w-full">
             {cta} <Arrow />
-          </a>
+          </ScrollLink>
         )}
       </div>
     </div>
@@ -310,9 +355,9 @@ function Courses() {
           <BuyButton offer={BUNDLE_ID} className="btn-ink">
             Quiero acceso completo <Arrow />
           </BuyButton>
-          <a href="#programa" className="btn-lime btn-sweep">
+          <ScrollLink to="programa" className="btn-lime btn-sweep">
             Ver el programa
-          </a>
+          </ScrollLink>
         </Reveal>
       </div>
     </section>
@@ -331,7 +376,7 @@ function About() {
           src={headerSeal.url}
           alt="Emblema Francisco en las Redes University"
           loading="lazy"
-          className="seal-parallax seal-hover mx-auto block w-56 max-w-none overflow-visible rounded-full bg-ink object-contain p-1 sm:w-72 md:w-[26rem]"
+          className="seal-parallax seal-hover mx-auto block aspect-square w-56 max-w-none overflow-visible rounded-full bg-ink object-contain p-1 sm:w-72 md:w-[26rem]"
         />
         <Reveal>
           <p className="eyebrow text-foreground/85">Qué es Francisco University</p>
@@ -487,10 +532,15 @@ function Comparison() {
           <BundleOffer id="bundle" />
         </div>
 
-        {/* individual cards */}
-        <p id={INDIVIDUAL_SECTION_ID} className="eyebrow mt-20 text-center text-foreground/70">
-          O llévate un curso suelto
-        </p>
+        {/* individual cards — destino del botón "Elegir curso" del hero.
+            scroll-mt deja aire para el header sticky y para los precios,
+            que sobresalen por encima de cada tarjeta. */}
+        <div id={INDIVIDUAL_SECTION_ID} className="mt-20 scroll-mt-32 text-center">
+          <p className="eyebrow text-foreground/70">O llévate un curso suelto</p>
+          <h3 className="display mx-auto mt-4 max-w-2xl text-[clamp(1.3rem,3vw,2rem)]">
+            Elige el que necesitas ahora
+          </h3>
+        </div>
         <ul className="mt-14 grid gap-x-4 gap-y-14 sm:grid-cols-2 lg:grid-cols-5">
           {individualCards.map((c, i) => (
             <IndividualCard key={c.id} card={c} delay={i * 70} />
@@ -678,9 +728,12 @@ function Footer() {
               <ul className="mt-5 space-y-4">
                 {c.items.map((i) => (
                   <li key={i}>
-                    <a href="#top" className="text-sm text-foreground/80 transition-colors hover:text-lime">
+                    <ScrollLink
+                      to="top"
+                      className="text-sm text-foreground/80 transition-colors hover:text-lime"
+                    >
                       {i}
-                    </a>
+                    </ScrollLink>
                   </li>
                 ))}
               </ul>

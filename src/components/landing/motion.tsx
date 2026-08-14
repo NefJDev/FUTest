@@ -121,6 +121,28 @@ export function useParallax<T extends HTMLElement>(strength = 0.06) {
   return ref;
 }
 
+/* --------------------------------------------------- navegación por anclas */
+
+/**
+ * Lleva la página hasta una sección.
+ *
+ * Se llama desde un <button> y no desde un `<a href="#seccion">` porque el
+ * router de TanStack intercepta los clics en anclas y los trata como
+ * navegación, cancelando el salto del navegador.
+ *
+ * `scrollIntoView` respeta el `scroll-margin-top` del destino, que es lo que
+ * deja aire para el header sticky.
+ */
+export function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.scrollIntoView({
+    behavior: prefersReduced() ? "auto" : "smooth",
+    block: "start",
+  });
+}
+
 /* -------------------------------------------------------- scroll progress */
 
 /** Writes a 0→1 scroll progress var (--sp) used by the animated background. */
