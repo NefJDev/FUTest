@@ -315,7 +315,7 @@ function PlanCard({
 
 function Courses() {
   return (
-    <section id="acceso" className="relative overflow-hidden">
+    <section id="acceso" className="relative scroll-mt-24 overflow-hidden">
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
         <Reveal>
           <h2 className="display mx-auto max-w-4xl text-center text-[clamp(1.7rem,4.4vw,3rem)]">
@@ -471,7 +471,7 @@ function BundleOffer({ id }: { id?: string }) {
     <div
       ref={ref}
       data-visible={inView ? "true" : "false"}
-      className="reveal reveal-strong bundle-glow cta-pulse glow-red overflow-hidden rounded-2xl md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+      className="reveal reveal-strong bundle-glow cta-pulse glow-red scroll-mt-24 overflow-hidden rounded-2xl md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
       id={id}
     >
       <div className="card-ink rounded-none p-6 sm:p-9">
@@ -522,7 +522,7 @@ function BundleOffer({ id }: { id?: string }) {
 
 function Comparison() {
   return (
-    <section className="relative overflow-hidden bg-ink">
+    <section id="precios" className="relative scroll-mt-24 overflow-hidden bg-ink">
       <div className="grid-lines-dark absolute inset-0" aria-hidden="true" />
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
         <Reveal>
@@ -589,7 +589,7 @@ function IndividualCard({
 
 function Bio() {
   return (
-    <section className="relative">
+    <section id="por-que-francisco" className="relative scroll-mt-24">
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
         <Reveal className="panel-alt grid items-center gap-8 rounded-3xl p-6 sm:p-10 md:grid-cols-2 md:p-14">
           <img
@@ -622,7 +622,7 @@ function Bio() {
 
 function Reviews() {
   return (
-    <section className="relative">
+    <section id="resenas" className="relative scroll-mt-24">
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
         <Reveal>
           <p className="eyebrow text-center text-foreground/80">Reseñas</p>
@@ -676,7 +676,7 @@ function Reviews() {
 function Faq() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="relative">
+    <section id="faq" className="relative scroll-mt-24">
       <div className="relative mx-auto max-w-[1320px] px-5 py-16 md:px-10 md:py-24">
         <p className="eyebrow text-foreground/80">Preguntas frecuentes</p>
         <h2 className="display mt-6 max-w-2xl text-[clamp(1.6rem,3.6vw,2.4rem)]">
@@ -708,11 +708,39 @@ function Faq() {
 
 /* ----------------------------------------------------------------- footer */
 
+/**
+ * Enlace del pie: o salta a una sección de esta misma página (`to`), o sale a
+ * un sitio externo (`href`).
+ */
+type FooterLink = { label: string; to: string } | { label: string; href: string };
+
+const footerLinkClass = "text-sm text-foreground/80 transition-colors hover:text-lime";
+
 function Footer() {
-  const cols = [
-    { title: "Programa", items: ["Los 5 cursos", "Por qué Francisco", "El bundle"] },
-    { title: "Acceso", items: ["Precios", "Reseñas", "Preguntas frecuentes"] },
-    { title: "Comunidad", items: ["franciscoenlasredes.com", "@franciscoenlasredes"] },
+  const cols: { title: string; items: FooterLink[] }[] = [
+    {
+      title: "Programa",
+      items: [
+        { label: "Los 5 cursos", to: "acceso" },
+        { label: "Por qué Francisco", to: "por-que-francisco" },
+        { label: "El bundle", to: "bundle" },
+      ],
+    },
+    {
+      title: "Acceso",
+      items: [
+        { label: "Precios", to: "precios" },
+        { label: "Reseñas", to: "resenas" },
+        { label: "Preguntas frecuentes", to: "faq" },
+      ],
+    },
+    {
+      title: "Comunidad",
+      items: [
+        { label: "franciscoenlasredes.com", href: "https://franciscoenlasredes.com/" },
+        { label: "@franciscoenlasredes", href: "https://www.instagram.com/franciscoenlasredes/" },
+      ],
+    },
   ];
   return (
     <footer className="relative bg-ink">
@@ -728,14 +756,22 @@ function Footer() {
             <div key={c.title}>
               <p className="text-sm font-bold tracking-[0.08em] uppercase">{c.title}</p>
               <ul className="mt-5 space-y-4">
-                {c.items.map((i) => (
-                  <li key={i}>
-                    <ScrollLink
-                      to="top"
-                      className="text-sm text-foreground/80 transition-colors hover:text-lime"
-                    >
-                      {i}
-                    </ScrollLink>
+                {c.items.map((item) => (
+                  <li key={item.label}>
+                    {"href" in item ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={footerLinkClass}
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <ScrollLink to={item.to} className={footerLinkClass}>
+                        {item.label}
+                      </ScrollLink>
+                    )}
                   </li>
                 ))}
               </ul>
