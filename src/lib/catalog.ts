@@ -128,7 +128,11 @@ export const INSTALLMENT_COUNT = 3;
 
 export const BUNDLE = {
   id: BUNDLE_ID,
-  title: "Bundle completo — los 5 cursos",
+  /**
+   * Vale como titular del checkout y también como concepto en el resumen y en
+   * el recibo de la página de gracias: los tres leen de aquí.
+   */
+  title: "Buena decisión — Elegiste el bundle completo",
   short: "Bundle completo",
   desc: "Acceso total a los 5 cursos, comunidad y actualizaciones para siempre.",
   priceCents: BUNDLE_PRICE_CENTS,
