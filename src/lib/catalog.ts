@@ -159,6 +159,18 @@ export function isCourseId(id: string): id is CourseId {
   return COURSE_BY_ID.has(id as CourseId);
 }
 
+/**
+ * Antepone el correlativo al título: "Curso 01 — De 0 a 1 millón de seguidores".
+ *
+ * El número sale de `n`, el mismo que numera los cursos en la landing, así que
+ * el comprador ve la misma referencia en los dos sitios. El bundle no tiene
+ * correlativo: se devuelve su título tal cual.
+ */
+export function withCourseNumber(id: string, title: string): string {
+  const course = getCourse(id);
+  return course ? `Curso ${course.n} — ${title}` : title;
+}
+
 export type Product = {
   id: ProductId;
   title: string;

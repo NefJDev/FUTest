@@ -39,6 +39,7 @@ import {
   getPairedOffer,
   getProduct,
   splitInstallments,
+  withCourseNumber,
   type ProductId,
 } from "@/lib/catalog";
 import {
@@ -303,7 +304,9 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
         <div className="grid md:grid-cols-2">
           {/* ------------------------------------------------------ izquierda */}
           <div className="border-b border-[#eceef2] bg-[#fafbfc] px-5 py-6 md:border-r md:border-b-0 md:px-7">
-            <h2 className="text-[20px] leading-snug font-semibold">{product.title}</h2>
+            <h2 className="text-[20px] leading-snug font-semibold">
+              {withCourseNumber(product.id, product.title)}
+            </h2>
 
             <div className="mt-4 flex items-center gap-4">
               <img
@@ -364,8 +367,9 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                   disabled={bundleTaken}
                   onToggle={togglePaired}
                   thumb={paired.course.thumb}
-                  eyebrow={`Combina con lo que ya llevas · Curso ${paired.course.n}`}
-                  title={paired.course.short}
+                  // El correlativo va ahora en el título, así que sale del eyebrow.
+                  eyebrow="Combina con lo que ya llevas"
+                  title={withCourseNumber(paired.course.id, paired.course.short)}
                   priceCents={paired.priceCents}
                   listPriceCents={paired.listPriceCents}
                   badge={`-${paired.discountPercent}%`}
