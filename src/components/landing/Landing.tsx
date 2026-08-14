@@ -443,8 +443,10 @@ function Program() {
 function LimeBand({ children, top, bottom }: { children: React.ReactNode; top: string; bottom: string }) {
   const darkBelow = bottom !== "transparent";
   void top;
+  /* overflow-clip por el mismo motivo que <main>: el bloque de 320px que
+     prolonga el fondo desborda 311px y haría de esta banda otra trampa. */
   return (
-    <div className="relative z-10 overflow-hidden bg-transparent py-[38px] md:py-[42px]">
+    <div className="relative z-10 overflow-clip bg-transparent py-[38px] md:py-[42px]">
       <div className="slant-band band-kinetic relative w-[126%] -ml-[13%]" data-no-reveal>
         <div
           className={`pointer-events-none absolute inset-x-0 h-[320px] bg-ink ${darkBelow ? "top-full" : "bottom-full"}`}
@@ -770,7 +772,12 @@ function LandingContent() {
   return (
     <div ref={autoRef} className="min-h-screen bg-background">
       <Header />
-      <main ref={progressRef} className="relative overflow-hidden">
+      {/* overflow-clip y no overflow-hidden: `hidden` convierte a <main> en un
+          contenedor scrolleable por código, así que scrollIntoView lo desplazaba
+          por dentro en vez de mover la página. Como la rueda del ratón no puede
+          devolverlo, el hero quedaba inalcanzable hasta recargar. `clip` recorta
+          exactamente igual pero no admite scroll. */}
+      <main ref={progressRef} className="relative overflow-clip">
         <div className="master-bg absolute inset-0" aria-hidden="true" />
         <div className="aurora-a absolute inset-0" aria-hidden="true" />
         <div className="aurora-b absolute inset-0" aria-hidden="true" />
