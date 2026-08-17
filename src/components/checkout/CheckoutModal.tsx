@@ -344,9 +344,8 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                     ))}
                   </ul>
                   <p className="mt-3 text-[12.5px] text-[#4b5563]">
-                    Valor de catálogo{" "}
-                    <span className="line-through">{formatUSD(CATALOG_VALUE_CENTS)}</span> ·
-                    Comunidad privada y actualizaciones para siempre.
+                    <span className="line-through">{formatUSD(CATALOG_VALUE_CENTS)}</span> Pago
+                    único · Acceso inmediato a los 5 cursos
                   </p>
                 </>
               ) : (
