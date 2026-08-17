@@ -1,3 +1,4 @@
+import { Play } from "lucide-react";
 import { useState } from "react";
 import footerLogo from "@/assets/footer_logo.png.asset.json";
 import headerSeal from "@/assets/header_seal.png.asset.json";
@@ -337,9 +338,12 @@ function Courses() {
             <button
               type="button"
               aria-label="Reproducir video de presentación"
-              className="grid h-16 w-16 place-items-center rounded-full bg-indigo-soft text-xl text-foreground transition-transform hover:scale-105"
+              className="grid h-16 w-16 place-items-center rounded-full bg-indigo-soft text-foreground transition-transform hover:scale-105"
             >
-              ▶
+              {/* Icono y no el carácter "▶" (U+25B6): tiene Emoji=Sí, así que
+                  iOS y Android lo pintan con su fuente de emoji y el botón
+                  cambiaba de aspecto según el dispositivo. */}
+              <Play className="h-6 w-6" fill="currentColor" aria-hidden="true" />
             </button>
           </div>
         </Reveal>
@@ -350,7 +354,9 @@ function Courses() {
               <img src={courseThumbs[i]} alt={c.title} loading="lazy" className="h-32 w-full object-cover opacity-70 sm:h-28" />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,color-mix(in_oklab,var(--ink)_55%,transparent),color-mix(in_oklab,var(--ink)_92%,transparent))]" />
               <div className="absolute inset-0 flex items-center gap-2 p-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-indigo-soft text-[10px] text-foreground">▶</span>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-indigo-soft text-foreground">
+                  <Play className="h-3 w-3" fill="currentColor" aria-hidden="true" />
+                </span>
                 <span className="min-w-0">
                   <span className="block text-[9px] font-bold tracking-[0.18em] text-foreground/75 uppercase">Curso {c.n}</span>
                   <span className="mt-0.5 block text-[13px] leading-tight font-bold text-pretty">{c.title}</span>
