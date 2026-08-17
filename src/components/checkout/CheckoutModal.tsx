@@ -335,7 +335,7 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                           className="h-8 w-12 shrink-0 rounded object-cover"
                         />
                         <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-[#4b5563]">
-                          {course.short}
+                          {withCourseNumber(course.id, course.short)}
                         </span>
                         <span className="text-[12px] whitespace-nowrap text-[#9aa0ab] line-through">
                           {formatUSD(course.priceCents)}
@@ -404,7 +404,9 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                         className="flex items-center gap-2 text-[12px] text-[#4b5563]"
                       >
                         <span className="text-[#22a06b]">✓</span>
-                        <span className="min-w-0 flex-1 truncate">{course.short}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {withCourseNumber(course.id, course.short)}
+                        </span>
                         <span className="whitespace-nowrap text-[#9aa0ab] line-through">
                           {formatUSD(course.priceCents)}
                         </span>
