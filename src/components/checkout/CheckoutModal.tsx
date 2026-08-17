@@ -433,7 +433,7 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                     importe al lado, así que nombra el producto en vez de
                     repetir el titular. */}
                 <span className="min-w-0 flex-1 text-[13.5px] leading-snug">
-                  {product.lineTitle}
+                  {withCourseNumber(product.id, product.lineTitle)}
                 </span>
                 <span className="text-[13.5px] whitespace-nowrap">
                   USD {formatAmount(product.priceCents)}
@@ -448,7 +448,7 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                     className="h-11 w-16 shrink-0 rounded object-cover"
                   />
                   <span className="min-w-0 flex-1 text-[13.5px] leading-snug">
-                    {paired.course.short}
+                    {withCourseNumber(paired.course.id, paired.course.short)}
                   </span>
                   <span className="text-[13.5px] whitespace-nowrap">
                     USD {formatAmount(paired.priceCents)}
