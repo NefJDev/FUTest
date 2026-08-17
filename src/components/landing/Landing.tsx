@@ -155,7 +155,11 @@ function Hero() {
             <h1 className="display mt-7 text-[clamp(2rem,6.2vw,4.2rem)] uppercase">
               <span className="block">Aprende a ganar dinero</span>
               <span className="block">como yo lo hice.</span>
-              <span className="highlight-kinetic mt-1 inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone] bg-lime px-2 text-ink lg:inline-block">
+              {/* inline-block y no inline: el h1 va con interlineado 1, así que
+                  el fondo lima se montaba sobre la línea de arriba. Como los
+                  márgenes verticales no aplican a los elementos en línea, el
+                  mt-2 solo empieza a separar cuando la caja deja de serlo. */}
+              <span className="highlight-kinetic mt-2 inline-block bg-lime px-2 text-ink">
                 El curso completo.
               </span>
             </h1>
