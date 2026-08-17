@@ -20,7 +20,7 @@ import { loadSession, saveSession, submitUpsell, type PurchaseSession } from "@/
 export const Route = createFileRoute("/oferta-final")({
   head: () => ({
     meta: [
-      { title: "Última oportunidad | Francisco en las Redes University" },
+      { title: "Última oportunidad | Francisco En Las Redes University" },
       { name: "robots", content: "noindex" },
     ],
   }),

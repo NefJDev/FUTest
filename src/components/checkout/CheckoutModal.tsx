@@ -62,7 +62,7 @@ import { saveSession, submitCheckout, type BumpId } from "@/lib/orders";
 
 /** Lo que en Kajabi se configura en el tema del checkout. */
 const BRAND = {
-  name: "Francisco en las Redes University",
+  name: "Francisco En Las Redes University",
   /** Color del botón de pago. */
   action: "#6265fe",
   actionHover: "#5053e8",

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/checkout")({
   },
   head: () => ({
     meta: [
-      { title: "Checkout — Francisco en las Redes University" },
+      { title: "Checkout — Francisco En Las Redes University" },
       { name: "robots", content: "noindex" },
     ],
   }),

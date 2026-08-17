@@ -8,7 +8,7 @@ import { formatOrderDate, loadSession, type Order, type PurchaseSession } from "
 export const Route = createFileRoute("/gracias")({
   head: () => ({
     meta: [
-      { title: "¡Listo! Ya estás dentro — Francisco en las Redes University" },
+      { title: "¡Listo! Ya estás dentro — Francisco En Las Redes University" },
       { name: "robots", content: "noindex" },
     ],
   }),
