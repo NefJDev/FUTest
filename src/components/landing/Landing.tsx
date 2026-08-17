@@ -449,13 +449,13 @@ function LimeBand({
   children,
   top,
   bottom,
-  to,
+  offer,
 }: {
   children: React.ReactNode;
   top: string;
   bottom: string;
-  /** Sección a la que salta la banda al pulsarla. Sin esto no es clicable. */
-  to?: string;
+  /** Offer cuyo checkout abre la banda al pulsarla. Sin esto no es clicable. */
+  offer?: ProductId;
 }) {
   const darkBelow = bottom !== "transparent";
   void top;
@@ -480,16 +480,15 @@ function LimeBand({
         >
           <div className="grid-lines-dark absolute inset-0" />
         </div>
-        {to ? (
+        {offer ? (
           /* La banda entera es el área de clic, y como el botón hereda la
              inclinación del contenedor, la zona sensible calza con lo que se ve. */
-          <button
-            type="button"
-            onClick={() => scrollToSection(to)}
+          <BuyButton
+            offer={offer}
             className="relative block w-full cursor-pointer bg-lime py-5 transition-[filter] hover:brightness-[1.06] md:py-7"
           >
             {texto}
-          </button>
+          </BuyButton>
         ) : (
           <div className="relative bg-lime py-5 md:py-7">{texto}</div>
         )}
@@ -866,7 +865,7 @@ function LandingContent() {
           </div>
         </div>
 
-        <LimeBand top="transparent" bottom="var(--ink)" to="bundle">
+        <LimeBand top="transparent" bottom="var(--ink)" offer={BUNDLE_ID}>
           Obtén el bundle completo por{" "}
           <span className="line-through">{formatUSD(CATALOG_VALUE_CENTS)}</span>{" "}
           {formatUSD(BUNDLE_PRICE_CENTS)}
