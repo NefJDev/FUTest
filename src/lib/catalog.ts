@@ -128,13 +128,14 @@ export const INSTALLMENT_COUNT = 3;
 
 export const BUNDLE = {
   id: BUNDLE_ID,
-  /** Cómo se presenta el bundle en el checkout: celebra la decisión. */
+  /** Titular del checkout: celebra la decisión. */
   title: "Buena decisión — Elegiste el bundle completo",
   /**
-   * Nombre para el recibo. Ahí hay que decir qué se compró, no felicitar, así
-   * que no puede ser el mismo texto que el titular del checkout.
+   * Nombre del producto para las líneas de concepto: el resumen del checkout y
+   * el recibo. Ahí hay que decir qué se compró, no felicitar, así que no puede
+   * ser el mismo texto que el titular.
    */
-  receiptTitle: "Bundle completo — los 5 cursos",
+  lineTitle: "Bundle completo — los 5 cursos",
   short: "Bundle completo",
   desc: "Acceso total a los 5 cursos, comunidad y actualizaciones para siempre.",
   priceCents: BUNDLE_PRICE_CENTS,
@@ -179,10 +180,13 @@ export function withCourseNumber(id: string, title: string): string {
 
 export type Product = {
   id: ProductId;
-  /** Cómo se presenta el producto en el checkout. */
+  /** Titular con el que se presenta el producto en el checkout. */
   title: string;
-  /** Nombre que va en el recibo. Para los cursos coincide con `title`. */
-  receiptTitle: string;
+  /**
+   * Nombre para las líneas de concepto — resumen del checkout y recibo.
+   * Para los cursos coincide con `title`.
+   */
+  lineTitle: string;
   short: string;
   desc: string;
   priceCents: number;
@@ -194,7 +198,7 @@ export function getProduct(id: string): Product | undefined {
     return {
       id: BUNDLE_ID,
       title: BUNDLE.title,
-      receiptTitle: BUNDLE.receiptTitle,
+      lineTitle: BUNDLE.lineTitle,
       short: BUNDLE.short,
       desc: BUNDLE.desc,
       priceCents: BUNDLE.priceCents,
@@ -206,7 +210,7 @@ export function getProduct(id: string): Product | undefined {
   return {
     id: course.id,
     title: course.title,
-    receiptTitle: course.title,
+    lineTitle: course.title,
     short: course.short,
     /* La descripción larga y no shortDesc: el checkout tiene una columna ancha
        donde cabe, y ahí es donde hay que convencer. `shortDesc` se queda para

@@ -217,7 +217,7 @@ export const submitCheckout = createServerFn({ method: "POST" })
 
     const isBundle = product.id === BUNDLE_ID;
     const lines: OrderLine[] = [
-      { id: product.id, title: product.receiptTitle, priceCents: product.priceCents },
+      { id: product.id, title: product.lineTitle, priceCents: product.priceCents },
     ];
 
     const bumps = new Set(data.bumps);

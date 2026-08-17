@@ -429,7 +429,12 @@ export function CheckoutModal({ offer, onClose }: { offer: ProductId; onClose: (
                   alt=""
                   className="h-11 w-16 shrink-0 rounded object-cover"
                 />
-                <span className="min-w-0 flex-1 text-[13.5px] leading-snug">{product.title}</span>
+                {/* lineTitle y no title: esto es una línea de concepto con su
+                    importe al lado, así que nombra el producto en vez de
+                    repetir el titular. */}
+                <span className="min-w-0 flex-1 text-[13.5px] leading-snug">
+                  {product.lineTitle}
+                </span>
                 <span className="text-[13.5px] whitespace-nowrap">
                   USD {formatAmount(product.priceCents)}
                 </span>
